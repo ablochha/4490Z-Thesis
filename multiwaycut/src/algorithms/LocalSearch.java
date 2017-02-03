@@ -24,6 +24,8 @@ import java.util.Map;
  */
 public class LocalSearch {
 
+    public int iterations = 0;
+
     /**
      * Reads the terminal vertices to be isolated.
      * @param in a text representation of the flow network
@@ -121,57 +123,6 @@ public class LocalSearch {
 
             } //end for
 
-            /*for (FlowEdge edge : entry.getValue().getAllResEdges()) {
-
-                // Two vertices do have the same label
-                if ((entry.getValue() == edge.getEndVertex()) && (edge.getStartVertex().getLocalSearchLabel() == edge.getEndVertex().getLocalSearchLabel())) {
-
-                    relabel.addEdge(edge.getEndVertex().id(), edge.getStartVertex().id(), edge.getCapacity());
-
-                } //end if
-
-                // Two vertices don't have the same label
-                else if ((entry.getValue() == edge.getEndVertex()) && (edge.getStartVertex().getLocalSearchLabel() != edge.getEndVertex().getLocalSearchLabel())) {
-
-                    relabel.addVertex(nextId);
-                    relabel.setLocalSearchLabel(nextId, -1);
-
-                    auxiliarySinkCapacities.put(nextId, edge.getCapacity());
-
-                    // Vertices with the current label being expanded
-                    if (edge.getEndVertex().getLocalSearchLabel() == i) {
-
-                        relabel.addEdge(edge.getEndVertex().id(), nextId, 0);
-
-                    } //end if
-
-                    // Vertices without the current label being expanded
-                    else if (edge.getEndVertex().getLocalSearchLabel() != i) {
-
-                        relabel.addEdge(edge.getEndVertex().id(), nextId, edge.getCapacity());
-
-                    } //end else if
-
-                    // Vertices with the current label being expanded
-                    if (edge.getStartVertex().getLocalSearchLabel() == i) {
-
-                        relabel.addEdge(nextId, edge.getStartVertex().id(), 0);
-
-                    } //end if
-
-                    // Vertices without the current label being expanded
-                    else if (edge.getStartVertex().getLocalSearchLabel() != i) {
-
-                        relabel.addEdge(nextId, edge.getStartVertex().id(), edge.getCapacity());
-
-                    } //end else if
-
-                    nextId++;
-
-                } //end else if
-
-            } //end for*/
-
         } //end for
 
         sourceId = nextId;
@@ -234,13 +185,8 @@ public class LocalSearch {
             } //end else
 
         } //end for
-//relabel.test();
+
         minCut = relabel.goldbergTarjan(sourceId, sinkId);
-        for (int x = 0; x < minCut.size(); x++) {
-
-
-            StdOut.println(minCut.get(x).edgeToString());
-        } //end for
         FlowVertex source = relabel.getVertices().get(sourceId);
 
         // Relabel vertices who's edge to the source is in the cut
@@ -275,6 +221,28 @@ public class LocalSearch {
     } //end computeMinimumCostRelabel
 
     /**
+     * Computes a minimum cut from each terminal vertex to the sink.
+     * @param multiwayCut a list of edges in the multiway cut
+     */
+    private int outputMultiwayCut(LinkedList<FlowEdge> multiwayCut) {
+
+        int multiwayCutWeight = 0;
+
+        StdOut.println("Multiway Cut: ");
+
+        for (int i = 0; i < multiwayCut.size(); i++) {
+
+            StdOut.println(multiwayCut.get(i).edgeToString());
+            multiwayCutWeight += multiwayCut.get(i).getCapacity();
+
+        } //end for
+
+        StdOut.println("The weight of the multiway cut: " + multiwayCutWeight);
+        return multiwayCutWeight;
+
+    } //end outputMultiwayCut
+
+    /**
      * Computes a minimum multiway cut.
      * @param in a text representation of the flow network
      */
@@ -282,7 +250,6 @@ public class LocalSearch {
 
         // The number of terminal vertices, and the heaviest cut
         int k = in.readInt();
-        int heavyIndex;
         int labelCost = 0;
         int newLabelCost = 0;
         int bestLabelCost = 0;
@@ -292,10 +259,8 @@ public class LocalSearch {
         Map<Integer, Integer> bestLabelling;
 
         // The minimum cuts for each iteration
-        LinkedList<LinkedList<FlowEdge>> allMinCut = new LinkedList<>();
-        LinkedList<FlowEdge> multiwayCut = new LinkedList<>();
+        LinkedList<FlowEdge> multiwayCut;
         LinkedList<Integer> terminals = new LinkedList<>();
-        LinkedList<Integer> cutWeights = new LinkedList<>();
 
         StdOut.println("Local Search");
 
@@ -307,8 +272,8 @@ public class LocalSearch {
 
         labelling = flowNetwork.initialLocalSearchLabel(terminals);
         labelCost = flowNetwork.localSearchLabelCost();
-        //flowNetwork.test();
-        StdOut.println("The initial min cut cost is: " + labelCost);
+
+        //StdOut.println("The initial min cut cost is: " + labelCost);
 
         while (true) {
 
@@ -317,9 +282,12 @@ public class LocalSearch {
 
             for (int i = 0; i < k; i++) {
 
+                iterations++;
+
                 newLabelling = computeMinimumCostRelabel(flowNetwork, i, terminals);
                 flowNetwork.relabel(newLabelling);
                 newLabelCost = flowNetwork.localSearchLabelCost();
+                //StdOut.println("Min cut weight: " + newLabelCost);
 
                 if (newLabelCost < labelCost) {
 
@@ -332,17 +300,17 @@ public class LocalSearch {
 
             if (labelCost >= bestLabelCost) {
 
-                return bestLabelCost;
+                flowNetwork.relabel(bestLabelling);
+                break;
 
             } //end if
 
         } //end while
 
-        /*initializeInfinityEdges(flowNetwork, vertices);
-        computeMinimumCut(k, flowNetwork, terminals, vertices, allMinCut, cutWeights);
-        heavyIndex = computeHeaviestCut(k, cutWeights);
-        unionCuts(k, heavyIndex, allMinCut, multiwayCut);
-        outputMultiwayCut(multiwayCut);*/
+        multiwayCut = flowNetwork.localSearchMinCut();
+        outputMultiwayCut(multiwayCut);
+
+        return bestLabelCost;
 
     } //end computeMultiwayCut
 
