@@ -304,12 +304,13 @@ public class FlowNetwork {
 
         setSource(s);
         setSink(t);
-        StdOut.println("GoldBerg-Tarjan(n^3) Source:" + getSource() + ", Sink: " + getSink());
+        //StdOut.println("GoldBerg-Tarjan(n^3) Source:" + getSource() + ", Sink: " + getSink());
         maxFlow = 0;
 
         if (this.getSource() >= 0 && this.getSink() >= 0) {
 
             graph.resetFlow();
+            graph.resetFrom();
             graph.buildResidualGraph();
             graph.resetExcess(sourceId);
             graph.initializeLabels(sourceId);
@@ -322,15 +323,7 @@ public class FlowNetwork {
 
             } //end while
 
-            //maxFlow = graph.getExcess(sinkId);
-            //maxFlow = graph.getInFlow(sourceId) - graph.getOutFlow(sourceId);
-            /*System.out.println("Source In: " + graph.getInFlow(sourceId));
-            System.out.println("Source Out: " + graph.getInFlow(sourceId));
-            System.out.println("Source Excess: " + graph.getExcess(sourceId));
-            System.out.println("Sink In: " + graph.getInFlow(sinkId));
-            System.out.println("Sink Out: " + graph.getInFlow(sinkId));
-            System.out.println("Sink Excess: " + graph.getExcess(sinkId));*/
-
+            //test();
             return graph.minCut(sinkId, sourceId);
 
         } //end if
@@ -356,6 +349,12 @@ public class FlowNetwork {
         return graph.localSearchLabelCost();
 
     } //end localSearchLabelCost
+
+    public LinkedList<FlowEdge> localSearchMinCut() {
+
+        return graph.localSearchMinCut();
+
+    } //end localSearchMinCut
 
     public void relabel(Map<Integer, Integer> labelling) {
 
