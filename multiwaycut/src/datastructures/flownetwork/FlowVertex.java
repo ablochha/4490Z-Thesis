@@ -16,12 +16,9 @@ public class FlowVertex {
     private int label;
     private int localSearchLabel;
     private int iteratorAugPath;
-    private int predecessor;
     private LinkedList<FlowEdge> adjacencyList;
     private LinkedList<FlowEdge> resAdjacencyList;
-    private FlowEdge backtrackEdge;
     private boolean deadEnd;
-    private boolean backtrack;
     private boolean increasedLabel;
 
     public FlowVertex(int id) {
@@ -31,9 +28,7 @@ public class FlowVertex {
         this.localSearchLabel = -1;
         this.label = 0;
         this.iteratorAugPath = 0;
-        this.predecessor = -10;
         this.deadEnd = false;
-        this.backtrack = false;
         adjacencyList = new LinkedList<FlowEdge>();
         resAdjacencyList = new LinkedList<FlowEdge>();
 
@@ -109,7 +104,7 @@ public class FlowVertex {
             FlowEdge oldEdge = this.getResEdge(startVertex);
 
             if (oldEdge != null) {
-                StdOut.println("Removed Res Id: " + this.id() + ", Id: " + startVertex.id());
+
                 resAdjacencyList.remove(oldEdge);
                 return true;
 
@@ -318,6 +313,19 @@ public class FlowVertex {
 
     } //end resetFlow
 
+    public void resetFrom() {
+
+        ListIterator<FlowEdge> it = adjacencyList.listIterator();
+
+        while (it.hasNext()) {
+
+            FlowEdge nextEdge = it.next();
+            nextEdge.setFrom(-10);
+
+        } //end while
+
+    } //end resetFrom
+
     public int getOutFlow() {
 
         ListIterator<FlowEdge> it = adjacencyList.listIterator();
@@ -405,42 +413,6 @@ public class FlowVertex {
 
     } //end resetExcess
 
-    public void setPredecessor(int predecessor) {
-
-        this.predecessor = predecessor;
-
-    } //end setPredecessor
-
-    public int getPredecessor() {
-
-        return this.predecessor;
-
-    } //end getPredecessor
-
-    public void resetPredecessor() {
-
-        this.predecessor = -10;
-
-    } //end resetPredecessor
-
-    public void setBacktrackEdge(FlowEdge backtrackEdge) {
-
-        this.backtrackEdge = backtrackEdge;
-
-    } //end setBacktrackEdge
-
-    public FlowEdge getBacktrackEdge() {
-
-        return this.backtrackEdge;
-
-    } //end getBacktrackEdge
-
-    public void resetBacktrackEdge() {
-
-        this.backtrackEdge = null;
-
-    } //end resetBacktrackEdge
-
     public void resetIncreasedLabel() {
 
         this.increasedLabel = false;
@@ -465,18 +437,6 @@ public class FlowVertex {
 
     } //end setDead
 
-    public boolean isBacktrack() {
-
-        return this.backtrack;
-
-    } //end isBacktrack
-
-    public void setBacktrack(boolean backtrack) {
-
-        this.backtrack = backtrack;
-
-    } //end setBacktrack
-
     public void resetEdge() {
 
         this.iteratorAugPath = 0;
@@ -494,18 +454,20 @@ public class FlowVertex {
             FlowEdge nextEdge = it.next();
 
             // Residual capacity, can still push flow forwards
-            if (nextEdge.getEndVertex().getLabel() + 1 < newLabel && nextEdge.getCapacity() - nextEdge.getFlow() > 0) {
+            if ((nextEdge.getFrom() == this.id() || nextEdge.getFrom() == -10) && nextEdge.getEndVertex().getLabel() + 1 < newLabel &&
+                    nextEdge.getCapacity() - nextEdge.getFlow() > 0) {
 
                 newLabel = nextEdge.getEndVertex().getLabel() + 1;
 
             } //end if
 
             // Flow that can be pushed backwards
-            if (nextEdge.getEndVertex().getLabel() + 1 < newLabel && nextEdge.getFlow() > 0) {
+            else if (nextEdge.getFrom()== nextEdge.getEndVertex().id() &&
+                    nextEdge.getEndVertex().getLabel() + 1 < newLabel && nextEdge.getFlow() > 0) {
 
                 newLabel = nextEdge.getEndVertex().getLabel() + 1;
 
-            } //end if
+            } //end else if
 
         } //end while
 
@@ -517,23 +479,25 @@ public class FlowVertex {
             FlowEdge nextEdge = it.next();
 
             // Residual capacity, can still push flow forwards
-            if (nextEdge.getStartVertex().getLabel() + 1 < newLabel && nextEdge.getCapacity() - nextEdge.getFlow() > 0) {
+            if ((nextEdge.getFrom() == this.id() || nextEdge.getFrom() == -10) && nextEdge.getStartVertex().getLabel() + 1 < newLabel &&
+                    nextEdge.getCapacity() - nextEdge.getFlow() > 0) {
 
                 newLabel = nextEdge.getStartVertex().getLabel() + 1;
 
             } //end if
 
             // Flow that can be pushed backwards
-            if (nextEdge.getStartVertex().getLabel() + 1 < newLabel && nextEdge.getFlow() > 0) {
+            else if (nextEdge.getFrom()== nextEdge.getStartVertex().id() &&
+                    nextEdge.getStartVertex().getLabel() + 1 < newLabel && nextEdge.getFlow() > 0) {
 
                 newLabel = nextEdge.getStartVertex().getLabel() + 1;
 
-            } //end if
-
-            this.label = newLabel;
-            this.increasedLabel = true;
+            } //end else if
 
         } //end while
+
+        this.label = newLabel;
+        this.increasedLabel = true;
 
     } //end relabelVertex
 
@@ -542,28 +506,12 @@ public class FlowVertex {
         FlowVertex newActiveVertex;
         FlowEdge pushEdge = this.getNextEdge();
 
-        // Skip the backtrack unless its a dead end
-        if (pushEdge != null && this == pushEdge.getStartVertex() && this.getPredecessor() == pushEdge.getEndVertex().id() && !this.isDead()) {
-
-            this.setBacktrackEdge(pushEdge);
-            pushEdge = this.getNextEdge();
-
-        } //end if
-
-        // Skip the backtrack unless its a dead end
-        else if (pushEdge != null && this == pushEdge.getEndVertex() && this.getPredecessor() == pushEdge.getStartVertex().id() && !this.isDead()) {
-
-            this.setBacktrackEdge(pushEdge);
-            pushEdge = this.getNextEdge();
-
-        } //end else if
-
         // There is not another edge to check
         if (pushEdge == null) {
 
             this.relabelVertex();
             this.setDead(false);
-            this.setBacktrack(false);
+            //this.setBacktrack(false);
             newActiveVertex = null;
 
         } //end if
@@ -574,14 +522,23 @@ public class FlowVertex {
             // This is a normal edge
             if (this == pushEdge.getStartVertex()) {
 
+                // The edge has no flow but positive capacity
+                if (pushEdge.getStartVertex().getLabel() == pushEdge.getEndVertex().getLabel() + 1 && 0 == pushEdge.getFlow() && pushEdge.getCapacity() > 0) {
+
+                    //StdOut.println("Start Vertex: " + pushEdge.getStartVertex().vertexToString());
+                    //StdOut.println("End Vertex: " + pushEdge.getEndVertex().vertexToString());
+                    newActiveVertex = pushEdge.pushFlowForward();
+
+                } //end if
+
                 // There is some flow on the edge, we might be pushing forward or backwards
-                if (pushEdge.getStartVertex().getLabel() == pushEdge.getEndVertex().getLabel() + 1 && pushEdge.getCapacity() > pushEdge.getFlow()) {
+                else if (pushEdge.getStartVertex().getLabel() == pushEdge.getEndVertex().getLabel() + 1 && pushEdge.getCapacity() > pushEdge.getFlow()) {
 
                     // We are adding flow to an unsaturated edge
-                    if (!this.isBacktrack()) {
+                    if (this.id() == pushEdge.getFrom()) {
 
-                        StdOut.println("Start Vertex: " + pushEdge.getStartVertex().vertexToString());
-                        StdOut.println("End Vertex: " + pushEdge.getEndVertex().vertexToString());
+                        //StdOut.println("Start Vertex: " + pushEdge.getStartVertex().vertexToString());
+                        //StdOut.println("End Vertex: " + pushEdge.getEndVertex().vertexToString());
                         newActiveVertex = pushEdge.pushFlowForward();
 
                     } //end if
@@ -589,18 +546,19 @@ public class FlowVertex {
                     // We are removing flow from an unsaturated edge
                     else {
 
-                        StdOut.println("Start Vertex: " + pushEdge.getStartVertex().vertexToString());
-                        StdOut.println("End Vertex: " + pushEdge.getEndVertex().vertexToString());
+                        //StdOut.println("Start Vertex: " + pushEdge.getStartVertex().vertexToString());
+                        //StdOut.println("End Vertex: " + pushEdge.getEndVertex().vertexToString());
                         newActiveVertex = pushEdge.pushResFlowBackward();
 
                     } //end else
-                    //newActiveVertex = pushEdge.pushFlowForward();
 
-                } //end if
+                } //end else if
 
                 // The edge has capacity 0, so this will return null
                 else if (pushEdge.getStartVertex().getLabel() == pushEdge.getEndVertex().getLabel() + 1 && pushEdge.getCapacity() == 0) {
 
+                    //StdOut.println("Start Vertex: " + pushEdge.getStartVertex().vertexToString());
+                    //StdOut.println("End Vertex: " + pushEdge.getEndVertex().vertexToString());
                     newActiveVertex = pushEdge.pushFlowForward();
 
                 } //end else if
@@ -608,14 +566,21 @@ public class FlowVertex {
                 // The edge is saturated, so we are pushing flow backward
                 else if (pushEdge.getStartVertex().getLabel() == pushEdge.getEndVertex().getLabel() + 1 && pushEdge.getCapacity() == pushEdge.getFlow()) {
 
-                    newActiveVertex = pushEdge.pushResFlowBackward();
+                    // This edge didn't get flow from this vertex
+                    if (this.id() != pushEdge.getFrom()) {
 
-                } //end else if
+                        //StdOut.println("Start Vertex: " + pushEdge.getStartVertex().vertexToString());
+                        //StdOut.println("End Vertex: " + pushEdge.getEndVertex().vertexToString());
+                        newActiveVertex = pushEdge.pushResFlowBackward();
 
-                // The edge has no flow but positive capacity
-                else if (pushEdge.getStartVertex().getLabel() == pushEdge.getEndVertex().getLabel() + 1 && 0 == pushEdge.getFlow()) {
+                    } //end if
 
-                    newActiveVertex = pushEdge.pushFlowForward();
+                    // This edge is saturated
+                    else {
+
+                        newActiveVertex = null;
+
+                    } //end else
 
                 } //end else if
 
@@ -624,17 +589,13 @@ public class FlowVertex {
 
                     this.relabelVertex();
                     this.setDead(false);
-                    this.setBacktrack(false);
                     newActiveVertex = null;
 
                 } //end else if
 
+                // No neighbor vertices within the label range
                 else {
 
-                    /*StdOut.println("START: " + pushEdge.getStartVertex().getLabel());
-                    StdOut.println("END: " + pushEdge.getEndVertex().getLabel());
-                    StdOut.println("VERTEXS: " + pushEdge.getStartVertex().vertexToString());
-                    StdOut.println("VERTEXE: " + pushEdge.getEndVertex().vertexToString());*/
                     newActiveVertex = null;
 
                 } //end else
@@ -644,14 +605,22 @@ public class FlowVertex {
             // This is a residual edge
             else {
 
+                // The next edge is a residual edge, and it currently has no flow but positive capacity
+                if (pushEdge.getEndVertex().getLabel() == pushEdge.getStartVertex().getLabel() + 1 && 0 == pushEdge.getFlow() && pushEdge.getCapacity() > 0) {
+                    //StdOut.println("Start Vertex: " + pushEdge.getEndVertex().vertexToString());
+                    //StdOut.println("End Vertex: " + pushEdge.getStartVertex().vertexToString());
+                    newActiveVertex = pushEdge.pushResFlowForward();
+
+                } //end if
+
                 // The next edge is a residual edge, and its not saturated
-                if (pushEdge.getEndVertex().getLabel() == pushEdge.getStartVertex().getLabel() + 1 && 0 < pushEdge.getFlow() && pushEdge.getFlow() != pushEdge.getCapacity()) {
+                else if (pushEdge.getEndVertex().getLabel() == pushEdge.getStartVertex().getLabel() + 1 && 0 < pushEdge.getFlow() && pushEdge.getFlow() < pushEdge.getCapacity()) {
 
                     // We are adding flow to an unsaturated edge
-                    if (!this.isBacktrack()) {
+                    if (this.id() == pushEdge.getFrom()) {
 
-                        StdOut.println("Start Vertex: " + pushEdge.getEndVertex().vertexToString());
-                        StdOut.println("End Vertex: " + pushEdge.getStartVertex().vertexToString());
+                        //StdOut.println("Start Vertex: " + pushEdge.getEndVertex().vertexToString());
+                        //StdOut.println("End Vertex: " + pushEdge.getStartVertex().vertexToString());
                         newActiveVertex = pushEdge.pushResFlowForward();
 
                     } //end if
@@ -659,32 +628,41 @@ public class FlowVertex {
                     // We are removing flow from an unsaturated edge
                     else {
 
-                        StdOut.println("Start Vertex: " + pushEdge.getEndVertex().vertexToString());
-                        StdOut.println("End Vertex: " + pushEdge.getStartVertex().vertexToString());
+                        //StdOut.println("Start Vertex: " + pushEdge.getEndVertex().vertexToString());
+                        //StdOut.println("End Vertex: " + pushEdge.getStartVertex().vertexToString());
                         newActiveVertex = pushEdge.pushFlowBackward();
 
                     } //end else
 
-                } //end if
+                } //end else if
 
                 //The next edge is a residual edge, and it has no capacity
                 else if (pushEdge.getEndVertex().getLabel() == pushEdge.getStartVertex().getLabel() + 1 && 0 == pushEdge.getCapacity()) {
 
+                    //StdOut.println("Start Vertex: " + pushEdge.getStartVertex().vertexToString());
+                    //StdOut.println("End Vertex: " + pushEdge.getEndVertex().vertexToString());
                     newActiveVertex = pushEdge.pushResFlowForward();
 
                 } //end else if
 
                 // The next edge is a residual edge, and it is saturated
                 else if (pushEdge.getEndVertex().getLabel() == pushEdge.getStartVertex().getLabel() + 1 && pushEdge.getFlow() == pushEdge.getCapacity()) {
-StdOut.println(this.vertexToString());
-                    newActiveVertex = pushEdge.pushFlowBackward();
 
-                } //end else if
+                    // This edge didn't get flow from this vertex
+                    if (this.id() != pushEdge.getFrom()) {
 
-                // The next edge is a residual edge, and it currently has no flow but positive capacity
-                else if (pushEdge.getEndVertex().getLabel() == pushEdge.getStartVertex().getLabel() + 1 && 0 == pushEdge.getFlow()) {
-                    StdOut.println(this.vertexToString());
-                    newActiveVertex = pushEdge.pushResFlowForward();
+                        //StdOut.println("Start Vertex: " + pushEdge.getEndVertex().vertexToString());
+                        //StdOut.println("End Vertex: " + pushEdge.getStartVertex().vertexToString());
+                        newActiveVertex = pushEdge.pushFlowBackward();
+
+                    } //end if
+
+                    // This edge wasn't given flow from this vertex
+                    else {
+
+                        newActiveVertex = null;
+
+                    } //end else
 
                 } //end else if
 
@@ -693,11 +671,11 @@ StdOut.println(this.vertexToString());
 
                     this.relabelVertex();
                     this.setDead(false);
-                    this.setBacktrack(false);
                     newActiveVertex = null;
 
                 } //end else if
 
+                // No neighbor vertices within the label range
                 else {
 
                     newActiveVertex = null;
@@ -721,67 +699,64 @@ StdOut.println(this.vertexToString());
 
         } //end if
 
-        // There is only the backtrack edge
-        else if (this.isBacktrack()) {
-
-            this.setDead(true);
-            return this.getBacktrackEdge();
-
-        } //end else if
-
         // There are still edges to check
         else {
 
+            // There are still more normal edges to check
             if (iteratorAugPath >= 0 && iteratorAugPath < adjacencyList.size()) {
 
                 iteratorAugPath++;
 
+                // This is the last normal edge, and there are no residual edges
                 if (iteratorAugPath == adjacencyList.size() && resAdjacencyList.size() == 0) {
 
-                    //this.setDead(true);
-                    this.setBacktrack(true);
+                    this.setDead(true);
 
                 } //end if
-
+                //StdOut.println("Push Edge: " + adjacencyList.get(iteratorAugPath-1).edgeToString());
                 return adjacencyList.get(iteratorAugPath-1);
 
             } //end if
 
+            // Check the first residual edge
             else if (iteratorAugPath == adjacencyList.size()) {
 
                 iteratorAugPath = -1;
 
+                // There is only one residual edge
                 if (1 == resAdjacencyList.size()) {
 
-                    //this.setDead(true);
-                    this.setBacktrack(true);
+                    this.setDead(true);
 
                 } //end if
 
+                // There is no residual edges
                 if (0 == resAdjacencyList.size()) {
 
-                    //this.setDead(true);
-                    this.setBacktrack(true);
+                    this.setDead(true);
                     return null;
 
                 } //end if
-
+                //StdOut.println("Push Edge: " + resAdjacencyList.get(-1 * iteratorAugPath - 1).edgeToString());
                 return resAdjacencyList.get(-1 * iteratorAugPath - 1);
 
             } //end else if
 
+            // There are still more residual edges
             else if (-1 * iteratorAugPath < resAdjacencyList.size() - 1) {
 
                 iteratorAugPath--;
+                //StdOut.println("Push Edge: " + resAdjacencyList.get(-1 * iteratorAugPath - 1).edgeToString());
                 return resAdjacencyList.get(-1 * iteratorAugPath - 1);
 
             } //end else if
 
+            // This is the last residual edge
             else {
 
                 iteratorAugPath--;
-                //this.setDead(true);
-                this.setBacktrack(true);
+                this.setDead(true);
+                //StdOut.println("Push Edge: " + resAdjacencyList.get(-1 * iteratorAugPath - 1).edgeToString());
                 return resAdjacencyList.get(-1 * iteratorAugPath - 1);
 
             } //end else
@@ -792,20 +767,24 @@ StdOut.println(this.vertexToString());
 
     public void setPreviousEdge() {
 
+        // There are still more edges to check
         if (!this.isDead()) {
 
+            // The current edge is a normal edge
             if (iteratorAugPath > 0 && iteratorAugPath <= adjacencyList.size()) {
 
                 iteratorAugPath--;
 
             } //end if
 
+            // The current edge is the first residual edge
             else if (iteratorAugPath == -1) {
 
                 iteratorAugPath = adjacencyList.size();
 
             } //end else if
 
+            // The current edge is a residual edge
             else if (iteratorAugPath < -1) {
 
                 iteratorAugPath++;
@@ -820,14 +799,14 @@ StdOut.println(this.vertexToString());
 
         } //end if
 
-        else if (this.isBacktrack()){
+        // There are no more edges to check
+        else {
 
             this.setDead(false);
-            this.setBacktrack(false);
 
             if (resAdjacencyList.size() > 0) {
 
-                iteratorAugPath = -1 * resAdjacencyList.size() - 1;
+                iteratorAugPath = (-1 * resAdjacencyList.size()) + 1;
 
             } //end if
 
@@ -844,7 +823,7 @@ StdOut.println(this.vertexToString());
     public String vertexToString() {
 
         StringBuilder s = new StringBuilder();
-        s.append("Vertex " + id + " (label " + this.label + ", lsLabel " + this.localSearchLabel + ", pred " + this.predecessor + ", aug " + iteratorAugPath + "):  ");
+        s.append("Vertex " + id + " (label " + this.label + ", lsLabel " + this.localSearchLabel + ", aug " + iteratorAugPath + ", excess " + this.excess + "):  ");
 
         ListIterator<FlowEdge> it = adjacencyList.listIterator();
 
