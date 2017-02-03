@@ -38,7 +38,7 @@ public class IsolationHeuristic {
 
         } //end for
 
-        StdOut.println();
+        //StdOut.println();
 
     } //end readTerminals
 
@@ -96,12 +96,13 @@ public class IsolationHeuristic {
 
                 FlowEdge edge = it.next();
                 sum += edge.getCapacity();
-                StdOut.println("Edge: " + edge.edgeToString());
+
+                //StdOut.println("Edge: " + edge.edgeToString());
 
             } //end while
 
-            StdOut.println("Min cut weight: " + sum);
-            StdOut.println();
+            //StdOut.println("Min cut weight: " + sum);
+            //StdOut.println();
             cutWeights.add(sum);
 
         } //end for
@@ -155,7 +156,12 @@ public class IsolationHeuristic {
                 while (it.hasNext()) {
 
                     FlowEdge edge = it.next();
-                    multiwayCut.add(edge);
+
+                    if (!multiwayCut.contains(edge)){
+
+                        multiwayCut.add(edge);
+
+                    } //end if
 
                 } //end while
 
