@@ -99,7 +99,7 @@ public class Graph {
             boolean success = startVertex.removeEdge(endVertex);
 
             if (success) {
-StdOut.println("Removed Id: " + vertexId1 + ", Id: " + vertexId2);
+
                 endVertex.removeResEdge(startVertex);
                 return true;
 
@@ -136,6 +136,16 @@ StdOut.println("Removed Id: " + vertexId1 + ", Id: " + vertexId2);
         return true;
 
     } //end resetFlow
+
+    public void resetFrom() {
+
+        for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
+
+            entry.getValue().resetFrom();
+
+        } //end for
+
+    } //end resetFrom
 
     public boolean resetExcess(int startVertexId) {
 
@@ -232,6 +242,28 @@ StdOut.println("Removed Id: " + vertexId1 + ", Id: " + vertexId2);
 
     } //end localSearchLabelCost
 
+    public LinkedList<FlowEdge> localSearchMinCut() {
+
+        LinkedList<FlowEdge> minCut = new LinkedList<>();
+
+        for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
+
+            for (FlowEdge edge : entry.getValue().getAllEdges()) {
+
+                if ((entry.getValue() == edge.getStartVertex()) && (edge.getStartVertex().getLocalSearchLabel() != edge.getEndVertex().getLocalSearchLabel())) {
+
+                    minCut.add(edge);
+
+                } //end if
+
+            } //end for
+
+        } //end for
+
+        return minCut;
+
+    } //end localSearchMinCut
+
     public void relabel(Map<Integer, Integer> labelling) {
 
         for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
@@ -255,7 +287,6 @@ StdOut.println("Removed Id: " + vertexId1 + ", Id: " + vertexId2);
             } //end if
 
         } //end for
-        test();
 
         return true;
 
@@ -322,23 +353,21 @@ StdOut.println("Removed Id: " + vertexId1 + ", Id: " + vertexId2);
 
         FlowVertex headVertex = queue.removeFirst();
         headVertex.resetEdge();
-        //headVertex.resetPredecessor();
-        headVertex.resetBacktrackEdge();
 
         while (headVertex.getExcess() > 0 && !headVertex.labelIncreased()) {
-StdOut.println("HEAD VERTEX: " + headVertex.vertexToString());
+            //StdOut.println("HEAD VERTEX: " + headVertex.vertexToString());
             FlowVertex newVertex = headVertex.pushRelabel();
 
             if (newVertex != null && newVertex != startVertex && newVertex != endVertex) {
-StdOut.println("Added to queue: " + newVertex.vertexToString());
+                //StdOut.println("Added to queue: " + newVertex.vertexToString());
                 queue.add(newVertex);
 
             } //end if
 
         } //end while
 
-        if (headVertex.getExcess() > 0 && headVertex.getExcess() < 500) {
-            StdOut.println("Added to queue: " + headVertex.vertexToString());
+        if (headVertex.getExcess() > 0) {
+            //StdOut.println("Added to queue22: " + headVertex.vertexToString() + " " + headVertex.isSaturated() + " Source: " + startVertex.id() + ", Sink: " + endVertex.id());
             headVertex.resetIncreasedLabel();
             queue.add(headVertex);
 
