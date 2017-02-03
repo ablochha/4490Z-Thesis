@@ -26,9 +26,9 @@ public class Main {
             ihCost = isolationHeuristic.computeMultiwayCut(in);
 
             in = new In(EXAMPLE2);
-            //lsCost = localSearch.computeMultiwayCut(in);
+            lsCost = localSearch.computeMultiwayCut(in);
 
-            //StdOut.println("Isolation Heuristic: " + ihCost + ", Local Search: " + lsCost);
+            StdOut.println("Isolation Heuristic: " + ihCost + ", Local Search (" + localSearch.iterations + " iterations): " + lsCost);
 
         } //end try
 
