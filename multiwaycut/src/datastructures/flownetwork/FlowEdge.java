@@ -20,6 +20,7 @@ public class FlowEdge {
 	private FlowVertex endVertex;
 	private int capacity;
 	private int flow;
+	private int from;
 	
 	/**
 	 * Declares a new FlowEdge with 0 flow
@@ -53,6 +54,7 @@ public class FlowEdge {
 		this.endVertex = endVertex;
 		this.capacity = capacity;
 		this.flow = 0;
+		this.from = -10;
 		
 	} //end FlowEdge
 	
@@ -113,6 +115,18 @@ public class FlowEdge {
 
 	} //end setFlow
 
+	public int getFrom() {
+
+		return from;
+
+	} //end getFrom
+
+	public void setFrom(int from) {
+
+		this.from = from;
+
+	} //end setFrom
+
 	public FlowVertex pushFlowForward() {
 
 		int previousExcess = endVertex.getExcess();
@@ -150,11 +164,18 @@ public class FlowEdge {
 		} //end else
 
 		endVertex.changeExcess(deltaFlow);
-		StdOut.println("Pushing " + deltaFlow + " Flow Forward: " + this.edgeToString());
+		//StdOut.println("Pushing " + deltaFlow + " Flow Forward: " + this.edgeToString());
+
+		if (deltaFlow > 0) {
+
+			this.setFrom(startVertex.id());
+
+		} //end if
+
 		// Return a new active vertex
 		if (previousExcess == 0 && deltaFlow > 0) {
 
-			endVertex.setPredecessor(startVertex.id());
+			//endVertex.setPredecessor(startVertex.id());
 			endVertex.setDead(false);
 			return endVertex;
 
@@ -205,11 +226,17 @@ public class FlowEdge {
 		} //end else
 
 		startVertex.changeExcess(deltaFlow);
-		StdOut.println("Pushing " + deltaFlow + " Res Flow Forward: " + this.edgeToString());
+		//StdOut.println("Pushing " + deltaFlow + " Res Flow Forward: " + this.edgeToString());
+
+		if (deltaFlow > 0) {
+
+			this.setFrom(endVertex.id());
+
+		} //end if
+
 		// Return a new active vertex
 		if (previousExcess == 0 && deltaFlow > 0) {
 
-			startVertex.setPredecessor(endVertex.id());
 			startVertex.setDead(false);
 			return startVertex;
 
@@ -253,11 +280,17 @@ public class FlowEdge {
 		} //end if
 
 		endVertex.changeExcess(-deltaFlow);
-		StdOut.println("Pushing " + deltaFlow + " Flow Backward: " + this.edgeToString());
+		//StdOut.println("Pushing " + deltaFlow + " Flow Backward: " + this.edgeToString());
+
+		if (flow == 0) {
+
+			this.setFrom(-10);
+
+		} //end if
+
 		// Return a new active vertex
 		if (previousExcess == 0 && deltaFlow > 0) {
 
-			startVertex.setPredecessor(endVertex.id());
 			startVertex.setDead(false);
 			return startVertex;
 
@@ -301,11 +334,17 @@ public class FlowEdge {
 		} //end if
 
 		startVertex.changeExcess(-deltaFlow);
-		StdOut.println("Pushing " + deltaFlow + " Res Flow Backward: " + this.edgeToString());
+		//StdOut.println("Pushing " + deltaFlow + " Res Flow Backward: " + this.edgeToString());
+
+		if (flow == 0) {
+
+			this.setFrom(-10);
+
+		} //end if
+
 		// Return a new active vertex
 		if (previousExcess == 0 && deltaFlow > 0) {
 
-			endVertex.setPredecessor(startVertex.id());
 			endVertex.setDead(false);
 			return endVertex;
 
@@ -321,7 +360,7 @@ public class FlowEdge {
 
 	public String edgeToString() {
 
-		return "(" + startVertex.id() + "," + endVertex.id() + ",c:" + capacity + ",f:" + flow + ")";
+		return "(" + startVertex.id() + "," + endVertex.id() + ",c:" + capacity + ",f:" + flow + ",from: " + from + ")";
 
 	} //end edgeToString
 	
