@@ -67,17 +67,17 @@ public class MultiwayCutSolver {
 
         } //end for
 
-        // Store the number of partitions that an edge bridges
+        // An edge can only bridge 0 or 2 partitions
         for (int i = 0; i < m; i++) {
 
             model.addEq(edgeLabelSums[i], model.sum(edgeLabels[i]));
 
         } //end for
 
-        // An edge can only bridge 0 or 2 partitions
-        for (int i = 0; i < m; i++) {
+        // Terminal vertices are locked into their partitions
+        for (int i = 0; i < k; i++) {
 
-            IloAdd(model, model.or(model.addEq(edgeLabelSums[i], 0), model.addEq(edgeLabelSums[i], 2)));
+            model.addEq(vertexLabels[terminals.get(i)][i], 1.0);
 
         } //end for
 
@@ -97,18 +97,11 @@ public class MultiwayCutSolver {
 
                 // xv[i] - xu[i] <= ze[i]
                 model.addLe(model.sum(
-                        model.prod(1.0, vertexLabels[edge.getEndVertex().id()][j]),
-                        model.prod(-1.0, vertexLabels[edge.getStartVertex().id()][j])),
-                        edgeLabels[i][j]);
+                            model.prod(1.0, vertexLabels[edge.getEndVertex().id()][j]),
+                            model.prod(-1.0, vertexLabels[edge.getStartVertex().id()][j])),
+                            edgeLabels[i][j]);
 
             } //end for
-
-        } //end for
-
-        // Terminal vertices are locked into their partitions
-        for (int i = 0; i < k; i++) {
-
-            model.addEq(vertexLabels[terminals.get(i)][i], 1.0);
 
         } //end for
 

@@ -18,7 +18,7 @@ public class Main {
     public static final String FIVEBYFIVE_5 = "data" + System.getProperty("file.separator") + "5x5_5.txt";
     public static final String FIVEBYFIVE_6 = "data" + System.getProperty("file.separator") + "5x5_6.txt";
 
-    public static final String CURRENT = EXAMPLE2;
+    public static final String CURRENT = FIVEBYFIVE_6;
 
     public static void main(String[] args) {
 
