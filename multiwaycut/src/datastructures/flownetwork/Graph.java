@@ -21,7 +21,7 @@ public class Graph {
 
     public Graph() {
 
-        this.vertices = new LinkedHashMap<Integer, FlowVertex>();
+        this.vertices = new LinkedHashMap<>();
 
     } //end Graph
 
@@ -169,13 +169,19 @@ public class Graph {
 
         Map<Integer, Integer> initialLabelling = new LinkedHashMap<>();
         LinkedList<FlowVertex> bfs = new LinkedList<>();
-        boolean marked[] = new boolean[vertices.size()];
+        Map<Integer, Boolean> marked = new LinkedHashMap<>();
+
+        for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
+
+            marked.put(entry.getValue().id(), false);
+
+        } //end for
 
         for (int i = 0; i < terminals.size(); i++) {
 
             vertices.get(terminals.get(i)).setLocalSearchLabel(i);
             initialLabelling.put(terminals.get(i), i);
-            marked[terminals.get(i)] = true;
+            marked.put(terminals.get(i), true);
             bfs.add(vertices.get(terminals.get(i)));
 
         } //end for
@@ -188,9 +194,9 @@ public class Graph {
 
                 FlowVertex end = edge.getEndVertex();
 
-                if (!marked[end.id()]) {
+                if (!marked.get(end.id()).booleanValue()) {
 
-                    marked[end.id()] = true;
+                    marked.put(end.id(), true);
                     end.setLocalSearchLabel(start.getLocalSearchLabel());
                     initialLabelling.put(end.id(), end.getLocalSearchLabel());
                     bfs.add(end);
@@ -203,9 +209,9 @@ public class Graph {
 
                 FlowVertex end = edge.getStartVertex();
 
-                if (!marked[end.id()]) {
+                if (!marked.get(end.id()).booleanValue()) {
 
-                    marked[end.id()] = true;
+                    marked.put(end.id(), true);
                     end.setLocalSearchLabel(start.getLocalSearchLabel());
                     initialLabelling.put(end.id(), end.getLocalSearchLabel());
                     bfs.add(end);
@@ -266,9 +272,9 @@ public class Graph {
 
     public void relabel(Map<Integer, Integer> labelling) {
 
-        for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
+        for (Map.Entry<Integer, Integer> entry : labelling.entrySet()) {
 
-            entry.getValue().setLocalSearchLabel(labelling.get(entry.getValue().id()));
+            vertices.get(entry.getKey()).setLocalSearchLabel(entry.getValue());
 
         } //end for
 
@@ -413,10 +419,16 @@ public class Graph {
 
         LinkedList<FlowVertex> bfs = new LinkedList<>();
         LinkedList<FlowEdge> minCut = new LinkedList<>();
-        boolean marked[] = new boolean[vertices.size()];
+        Map<Integer, Boolean> marked = new LinkedHashMap<>();
+
+        for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
+
+            marked.put(entry.getValue().id(), false);
+
+        } //end for
 
         bfs.add(vertices.get(sourceId));
-        marked[sourceId] = true;
+        marked.put(sourceId, true);
 
         while (!bfs.isEmpty()) {
 
@@ -426,9 +438,9 @@ public class Graph {
 
                 FlowVertex end = edge.getEndVertex();
 
-                if (edge.getCapacity() - edge.getFlow() > 0 && !marked[end.id()]) {
+                if (edge.getCapacity() - edge.getFlow() > 0 && !marked.get(end.id()).booleanValue()) {
 
-                    marked[end.id()] = true;
+                    marked.put(end.id(), true);
                     bfs.add(end);
 
                 } //end if
@@ -439,9 +451,9 @@ public class Graph {
 
                 FlowVertex end = edge.getStartVertex();
 
-                if (edge.getCapacity() - edge.getFlow() > 0 && !marked[end.id()]) {
+                if (edge.getCapacity() - edge.getFlow() > 0 && !marked.get(end.id()).booleanValue()) {
 
-                    marked[end.id()] = true;
+                    marked.put(end.id(), true);
                     bfs.add(end);
 
                 } //end if
@@ -454,7 +466,7 @@ public class Graph {
 
             for (FlowEdge edge : entry.getValue().getAllEdges()) {
 
-                if ((entry.getValue() == edge.getStartVertex()) && (marked[edge.getStartVertex().id()]) && (!marked[edge.getEndVertex().id()])) {
+                if ((entry.getValue() == edge.getStartVertex()) && (marked.get(edge.getStartVertex().id())) && (!marked.get(edge.getEndVertex().id()))) {
 
                     minCut.add(edge);
 
@@ -464,7 +476,7 @@ public class Graph {
 
             for (FlowEdge edge : entry.getValue().getAllResEdges()) {
 
-                if ((entry.getValue() == edge.getEndVertex()) && (marked[edge.getEndVertex().id()]) && (!marked[edge.getStartVertex().id()])) {
+                if ((entry.getValue() == edge.getEndVertex()) && (marked.get(edge.getEndVertex().id())) && (!marked.get(edge.getStartVertex().id()))) {
 
                     minCut.add(edge);
 

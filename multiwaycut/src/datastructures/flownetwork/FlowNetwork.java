@@ -1,10 +1,7 @@
 package datastructures.flownetwork;
 
-import library.In;
-import library.StdOut;
-import library.StdRandom;
-
 import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.Map;
 
 /**
@@ -12,99 +9,46 @@ import java.util.Map;
  */
 public class FlowNetwork {
 
-    private static final String NEWLINE = System.getProperty("line.separator");
+    private Graph graph;
+    private LinkedList<Integer> terminals;
 
+    private int k;
     private int sourceId;
     private int sinkId;
-    private int maxFlow;
-
-    private Graph graph;
 
     public FlowNetwork() {
 
         this.sourceId = -1;
         this.sinkId = -1;
-        this.maxFlow = 0;
+        this.k = 0;
         this.graph = new Graph();
+        this.terminals = new LinkedList<>();
 
     } //end FlowNetwork
 
-    /**
-     * Declare a FlowNetwork with the number of vertices and edges given
-     * @param vertices the number of vertices in the flow network
-     * @param edges the number of edges in the flow network
-     * @exception IllegalArgumentException if a negative number of edges is given
-     */
-    public FlowNetwork(int vertices, int edges) {
+    public void setK(int k) {
 
-        // Call the previous constructor to initializes the vertices and adjacency list
-        this();
+        this.k = k;
 
-        // Make sure the number of vertices isn't negative
-        if (vertices < 0) {
+    } //end setK
 
-            throw new IllegalArgumentException("Choose a nonnegative number of vertices");
+    public int getK() {
 
-        } //end if
+        return this.k;
 
-        // Make sure the number of edges isn't negative
-        if (edges < 0) {
+    } //end getK
 
-            throw new IllegalArgumentException("Choose a nonnegative number of edges");
+    public void setTerminals(LinkedList<Integer> terminals) {
 
-        } //end if
+        this.terminals = terminals;
 
-        // Initialize a random flow network by inserting randomly chosen edges
-        for (int i = 0; i < edges; i++) {
+    } //end setTerminals
 
-            int u = StdRandom.uniform(vertices);
-            int v = StdRandom.uniform(vertices);
+    public LinkedList<Integer> getTerminals() {
 
-            addVertex(u);
-            addVertex(v);
+        return this.terminals;
 
-            int capacity = StdRandom.uniform(100);
-            addEdge(u, v, capacity);
-
-        } //end for
-
-    } //end FlowNetwork
-
-    public FlowNetwork(In in, int vertices) {
-
-        this();			// Initialize the vertices and adjacency list
-        int edges = in.readInt();	// Read the number of edges
-
-        // Make sure the number of vertices isn't negative
-        if (vertices < 0) {
-
-            throw new IllegalArgumentException("Choose a nonnegative number of vertices");
-
-        } //end if
-
-        // Make sure the number of edges isn't negative
-        if (edges < 0) {
-
-            throw new IllegalArgumentException("Choose a nonnegative number of edges");
-
-        } //end if
-
-        // Read each edge from the input
-        for (int i = 0; i < edges; i++) {
-
-            int u = in.readInt();
-            int v = in.readInt();
-
-            addVertex(u);
-            addVertex(v);
-
-            // Insert the edge
-            int capacity = in.readInt();
-            addEdge(u, v, capacity);
-
-        } //end for
-
-    } //end FlowNetwork
+    } //end getTerminals
 
     public void setSource(int sourceId) {
 
@@ -305,7 +249,6 @@ public class FlowNetwork {
         setSource(s);
         setSink(t);
         //StdOut.println("GoldBerg-Tarjan(n^3) Source:" + getSource() + ", Sink: " + getSink());
-        maxFlow = 0;
 
         if (this.getSource() >= 0 && this.getSink() >= 0) {
 
@@ -367,6 +310,55 @@ public class FlowNetwork {
         return graph.getVertices();
 
     } //end getGraph
+
+    public int getNumVertices() {
+
+        return getVertices().size();
+
+    } //end getNumVertices
+
+    public LinkedList<FlowEdge> getEdges() {
+
+        LinkedList<FlowEdge> edges = new LinkedList<>();
+
+        for (Map.Entry<Integer, FlowVertex> entry : graph.getVertices().entrySet()) {
+
+            for (FlowEdge edge : entry.getValue().getAllEdges()) {
+
+                edges.add(edge);
+
+            } //end for
+
+        } //end for
+
+        return edges;
+
+    } //end getEdges
+
+    public int[] getEdgeCapacities() {
+
+        LinkedList<FlowEdge> edges = getEdges();
+        int[] edgeCapacities = new int[edges.size()];
+        int i = 0;
+
+        ListIterator<FlowEdge> it = edges.listIterator();
+
+        while (it.hasNext()) {
+
+            edgeCapacities[i] = it.next().getCapacity();
+            i++;
+
+        } //end while
+
+        return edgeCapacities;
+
+    } //end getEdgeCapacities
+
+    public int getNumEdges() {
+
+        return getEdges().size();
+
+    } //end getNumEdges
 
     public void test() {
 

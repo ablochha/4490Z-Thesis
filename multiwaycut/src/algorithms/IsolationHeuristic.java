@@ -21,38 +21,20 @@ import java.util.ListIterator;
 public class IsolationHeuristic {
 
     /**
-     * Reads the terminal vertices to be isolated.
-     * @param in a text representation of the flow network
-     * @param k the number of terminal vertices
-     * @param terminals a list of the terminal vertices
-     */
-    private void readTerminals(In in, int k, LinkedList<Integer> terminals) {
-
-        StdOut.println("k: " + k);
-
-        // Store each of the terminal vertices id's
-        for (int i = 0; i < k; i++) {
-
-            terminals.add(in.readInt());
-            StdOut.println("terminal " + (i+1) + ": " + terminals.get(i));
-
-        } //end for
-
-        //StdOut.println();
-
-    } //end readTerminals
-
-    /**
      * Adds an extra edge with infinity capacity from every vertex to the sink.
      * @param flowNetwork the flow network
-     * @param vertices the number of vertices in the flow network
      */
-    private void initializeInfinityEdges(FlowNetwork flowNetwork, int vertices, LinkedList<Integer> terminals) {
+    private void initializeInfinityEdges(FlowNetwork flowNetwork) {
+
+        LinkedList<Integer> t = flowNetwork.getTerminals();
+
+        int k = flowNetwork.getK();
+        int n = flowNetwork.getNumVertices();
 
         // Add an edge from each vertex to the sink with an infinity edge
-        for (int i = 0; i < terminals.size(); i++) {
+        for (int i = 0; i < k; i++) {
 
-            flowNetwork.addEdge(terminals.get(i), vertices, Integer.MAX_VALUE);
+            flowNetwork.addEdge(t.get(i), n - 1, Integer.MAX_VALUE);
 
         } //end for
 
@@ -60,15 +42,18 @@ public class IsolationHeuristic {
 
     /**
      * Computes a minimum cut from each terminal vertex to the sink.
-     * @param k the number of terminal vertices
      * @param flowNetwork the flow network
-     * @param terminals a list of the terminal vertices
-     * @param vertices the number of vertices in the flow network
      * @param allMinCut a list of all the minimum cuts
      * @param cutWeights a list of weights for the minimum cuts
      */
-    private void computeMinimumCut(int k, FlowNetwork flowNetwork, LinkedList<Integer> terminals, int vertices,
-                                   LinkedList<LinkedList<FlowEdge>> allMinCut, LinkedList<Integer> cutWeights) {
+    private void computeMinimumCut(FlowNetwork flowNetwork,
+                                   LinkedList<LinkedList<FlowEdge>> allMinCut,
+                                   LinkedList<Integer> cutWeights) {
+
+        LinkedList<Integer> t = flowNetwork.getTerminals();
+
+        int k = flowNetwork.getK();
+        int n = flowNetwork.getNumVertices();
 
         // Compute a minimum cut to isolate each of the k terminal vertices
         for (int i = 0; i < k; i++) {
@@ -76,17 +61,17 @@ public class IsolationHeuristic {
             int sum = 0;
 
             // Remove the infinity edge for the current source vertex
-            flowNetwork.removeEdge(terminals.get(i), vertices);
+            flowNetwork.removeEdge(t.get(i), n - 1);
 
             // Add back the infinity edge to the previous terminal vertex
             if (i > 0) {
 
-                flowNetwork.addEdge(terminals.get(i - 1), vertices, Integer.MAX_VALUE);
+                flowNetwork.addEdge(t.get(i - 1),n - 1, Integer.MAX_VALUE);
 
             } //end if
 
             // Compute the minimum cut for the specified terminal vertex, store the edges
-            LinkedList<FlowEdge> minCut = flowNetwork.goldbergTarjan(terminals.get(i), vertices);
+            LinkedList<FlowEdge> minCut = flowNetwork.goldbergTarjan(t.get(i),n - 1);
             allMinCut.add(minCut);
 
             ListIterator<FlowEdge> it = minCut.listIterator();
@@ -144,7 +129,10 @@ public class IsolationHeuristic {
      * @param allMinCut a list of all the minimum cuts
      * @param multiwayCut a list of edges in the multiway cut
      */
-    private void unionCuts(int k, int heavyIndex, LinkedList<LinkedList<FlowEdge>> allMinCut, LinkedList<FlowEdge> multiwayCut) {
+    private void unionCuts(int k,
+                           int heavyIndex,
+                           LinkedList<LinkedList<FlowEdge>> allMinCut,
+                           LinkedList<FlowEdge> multiwayCut) {
 
         // Compute the union of all cuts except the heaviest cut
         for (int i = 0; i < k; i++) {
@@ -179,11 +167,11 @@ public class IsolationHeuristic {
 
         int multiwayCutWeight = 0;
 
-        StdOut.println("Multiway Cut: ");
+        //StdOut.println("Multiway Cut: ");
 
         for (int i = 0; i < multiwayCut.size(); i++) {
 
-            StdOut.println(multiwayCut.get(i).edgeToString());
+            //StdOut.println(multiwayCut.get(i).edgeToString());
             multiwayCutWeight += multiwayCut.get(i).getCapacity();
 
         } //end for
@@ -195,33 +183,23 @@ public class IsolationHeuristic {
 
     /**
      * Computes a minimum multiway cut.
-     * @param in a text representation of the flow network
      */
-    public int computeMultiwayCut(In in) {
-
-        // The number of terminal vertices, and the heaviest cut
-        int k = in.readInt();
-        int heavyIndex;
+    public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
         // The minimum cuts for each iteration
         LinkedList<LinkedList<FlowEdge>> allMinCut = new LinkedList<>();
         LinkedList<FlowEdge> multiwayCut = new LinkedList<>();
-        LinkedList<Integer> terminals = new LinkedList<>();
         LinkedList<Integer> cutWeights = new LinkedList<>();
+
+        int heavyIndex;
 
         StdOut.println("Isolation Heuristic");
 
-        // Create the flow network from the text file
-        readTerminals(in, k, terminals);
-        int vertices = in.readInt();
-        FlowNetwork flowNetwork = new FlowNetwork(in, vertices);
-        flowNetwork.addVertex(vertices);
-        in.close();
-
-        initializeInfinityEdges(flowNetwork, vertices, terminals);
-        computeMinimumCut(k, flowNetwork, terminals, vertices, allMinCut, cutWeights);
-        heavyIndex = computeHeaviestCut(k, cutWeights);
-        unionCuts(k, heavyIndex, allMinCut, multiwayCut);
+        flowNetwork.addVertex(flowNetwork.getNumVertices());
+        initializeInfinityEdges(flowNetwork);
+        computeMinimumCut(flowNetwork, allMinCut, cutWeights);
+        heavyIndex = computeHeaviestCut(flowNetwork.getK(), cutWeights);
+        unionCuts(flowNetwork.getK(), heavyIndex, allMinCut, multiwayCut);
         return outputMultiwayCut(multiwayCut);
 
     } //end computeMultiwayCut

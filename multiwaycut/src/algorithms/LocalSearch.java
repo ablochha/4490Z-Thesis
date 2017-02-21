@@ -1,15 +1,10 @@
 package algorithms;
 
-import datastructures.flownetwork.FlowEdge;
-import datastructures.flownetwork.FlowNetwork;
-import datastructures.flownetwork.FlowVertex;
-import datastructures.flownetwork.Graph;
-import library.In;
+import datastructures.flownetwork.*;
 import library.StdOut;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.ListIterator;
 import java.util.Map;
 
 /**
@@ -26,39 +21,21 @@ public class LocalSearch {
 
     public int iterations = 0;
 
-    /**
-     * Reads the terminal vertices to be isolated.
-     * @param in a text representation of the flow network
-     * @param k the number of terminal vertices
-     * @param terminals a list of the terminal vertices
-     */
-    private void readTerminals(In in, int k, LinkedList<Integer> terminals) {
-
-        StdOut.println("k: " + k);
-
-        // Store each of the terminal vertices id's
-        for (int i = 0; i < k; i++) {
-
-            terminals.add(in.readInt());
-            StdOut.println("terminal " + (i+1) + ": " + terminals.get(i));
-
-        } //end for
-
-        StdOut.println();
-
-    } //end readTerminals
-
-    public Map<Integer, Integer> computeMinimumCostRelabel(FlowNetwork flowNetwork, int i, LinkedList<Integer> terminals) {
+    private Map<Integer, Integer> computeMinimumCostRelabel(FlowNetwork flowNetwork,
+                                                           LinkedList<Integer> terminals,
+                                                           int i) {
 
         FlowNetwork relabel = new FlowNetwork();
+
         Map<Integer, FlowVertex> vertices = flowNetwork.getVertices();
         Map<Integer, Integer> auxiliarySinkCapacities = new LinkedHashMap<>();
-        LinkedList<FlowEdge> minCut;
         Map<Integer, Integer> relabelledVertices = new LinkedHashMap<>();
 
+        LinkedList<FlowEdge> minCut;
+
         int nextId = 0;
-        int sourceId = -1;
-        int sinkId = -1;
+        int sourceId;
+        int sinkId;
 
         // Add the original vertices
         for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
@@ -75,14 +52,16 @@ public class LocalSearch {
             for (FlowEdge edge : entry.getValue().getAllEdges()) {
 
                 // Two vertices do have the same label
-                if ((entry.getValue() == edge.getStartVertex()) && (edge.getStartVertex().getLocalSearchLabel() == edge.getEndVertex().getLocalSearchLabel())) {
+                if ((entry.getValue() == edge.getStartVertex()) &&
+                    (edge.getStartVertex().getLocalSearchLabel() == edge.getEndVertex().getLocalSearchLabel())) {
 
                     relabel.addEdge(edge.getStartVertex().id(), edge.getEndVertex().id(), edge.getCapacity());
 
                 } //end else if
 
                 // Two vertices don't have the same label
-                else if ((entry.getValue() == edge.getStartVertex()) && (edge.getStartVertex().getLocalSearchLabel() != edge.getEndVertex().getLocalSearchLabel())) {
+                else if ((entry.getValue() == edge.getStartVertex()) &&
+                        (edge.getStartVertex().getLocalSearchLabel() != edge.getEndVertex().getLocalSearchLabel())) {
 
                     relabel.addVertex(nextId);
                     relabel.setLocalSearchLabel(nextId, -1);
@@ -228,11 +207,11 @@ public class LocalSearch {
 
         int multiwayCutWeight = 0;
 
-        StdOut.println("Multiway Cut: ");
+        //StdOut.println("Multiway Cut: ");
 
         for (int i = 0; i < multiwayCut.size(); i++) {
 
-            StdOut.println(multiwayCut.get(i).edgeToString());
+            //StdOut.println(multiwayCut.get(i).edgeToString());
             multiwayCutWeight += multiwayCut.get(i).getCapacity();
 
         } //end for
@@ -244,51 +223,47 @@ public class LocalSearch {
 
     /**
      * Computes a minimum multiway cut.
-     * @param in a text representation of the flow network
      */
-    public int computeMultiwayCut(In in) {
+    public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
-        // The number of terminal vertices, and the heaviest cut
-        int k = in.readInt();
-        int labelCost = 0;
-        int newLabelCost = 0;
-        int bestLabelCost = 0;
+        int labelCost;
+        int newLabelCost;
+        int bestLabelCost;
 
         Map<Integer, Integer> labelling;
         Map<Integer, Integer> newLabelling;
         Map<Integer, Integer> bestLabelling;
 
-        // The minimum cuts for each iteration
         LinkedList<FlowEdge> multiwayCut;
-        LinkedList<Integer> terminals = new LinkedList<>();
 
-        StdOut.println("Local Search");
-
-        // Create the flow network from the text file
-        readTerminals(in, k, terminals);
-        int vertices = in.readInt();
-        FlowNetwork flowNetwork = new FlowNetwork(in, vertices);
-        in.close();
-
-        labelling = flowNetwork.initialLocalSearchLabel(terminals);
+        labelling = flowNetwork.initialLocalSearchLabel(flowNetwork.getTerminals());
         labelCost = flowNetwork.localSearchLabelCost();
 
+        StdOut.println("Local Search");
         //StdOut.println("The initial min cut cost is: " + labelCost);
 
+        // Loop until no significant improved solutions are found
         while (true) {
 
-            bestLabelling = labelling;
+            //bestLabelling = labelling;
             bestLabelCost = labelCost;
 
-            for (int i = 0; i < k; i++) {
+            // Do a relabel operation for each label
+            for (int i = 0; i < flowNetwork.getK(); i++) {
 
                 iterations++;
 
-                newLabelling = computeMinimumCostRelabel(flowNetwork, i, terminals);
+                // TODO
+                // The new DIMACS graphs are not fully connected
+                // Extract the largest connected component for the multiway cut problem
+                // There are bugs with how these graphs dont count vertices the same way i do
+
+                newLabelling = computeMinimumCostRelabel(flowNetwork, flowNetwork.getTerminals(), i);
                 flowNetwork.relabel(newLabelling);
                 newLabelCost = flowNetwork.localSearchLabelCost();
                 //StdOut.println("Min cut weight: " + newLabelCost);
 
+                // The new labelling is better than the labellings in this iteration
                 if (newLabelCost < labelCost) {
 
                    labelling = newLabelling;
@@ -298,8 +273,11 @@ public class LocalSearch {
 
             } //end for
 
-            if (labelCost >= bestLabelCost) {
+            //if (labelCost >= bestLabelCost) {
+            if (labelCost >= (1 - 1 / Math.pow(flowNetwork.getK(), 2)) * bestLabelCost) {
 
+                bestLabelling = labelling;
+                bestLabelCost = labelCost;
                 flowNetwork.relabel(bestLabelling);
                 break;
 

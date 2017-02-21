@@ -4,7 +4,6 @@ import datastructures.flownetwork.FlowEdge;
 import datastructures.flownetwork.FlowNetwork;
 import ilog.concert.*;
 import ilog.cplex.*;
-import library.In;
 import library.StdOut;
 
 import java.util.LinkedList;
@@ -14,31 +13,17 @@ import java.util.LinkedList;
  */
 public class MultiwayCutSolver {
 
-    /**
-     * Reads the terminal vertices to be isolated.
-     * @param in a text representation of the flow network
-     * @param k the number of terminal vertices
-     * @param terminals a list of the terminal vertices
-     */
-    private void readTerminals(In in, int k, LinkedList<Integer> terminals) {
+    private void populateByRow(IloMPModeler model,
+                              IloNumVar[] edgeLabelSums,
+                              FlowNetwork flowNetwork) throws IloException {
 
-        StdOut.println("k: " + k);
+        LinkedList<FlowEdge> edges = flowNetwork.getEdges();
+        LinkedList<Integer> terminals = flowNetwork.getTerminals();
 
-        // Store each of the terminal vertices id's
-        for (int i = 0; i < k; i++) {
-
-            terminals.add(in.readInt());
-            StdOut.println("terminal " + (i+1) + ": " + terminals.get(i));
-
-        } //end for
-
-        //StdOut.println();
-
-    } //end readTerminals
-
-    static void populateByRow(IloMPModeler model, IloNumVar[] edgeLabelSums, int k, int n, int m,
-                              LinkedList<FlowEdge> edges, int[] edgeCapacities,
-                              LinkedList<Integer> terminals) throws IloException {
+        int n = flowNetwork.getNumVertices();
+        int m = flowNetwork.getNumEdges();
+        int k = flowNetwork.getK();
+        int[] edgeCapacities = flowNetwork.getEdgeCapacities();
 
         IloNumVar[][] vertexLabels = new IloNumVar[n][k];
         IloNumVar[][] edgeLabels = new IloNumVar[m][k];
@@ -109,62 +94,39 @@ public class MultiwayCutSolver {
 
     /**
      * Computes a minimum multiway cut.
-     * @param in a text representation of the flow network
      */
-    public int computeMultiwayCut(In in) {
+    public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
-        FlowNetwork flowNetwork;
-
-        LinkedList<FlowEdge> edges;
-        LinkedList<Integer> terminals = new LinkedList<>();
-
-        int k;
-        int numVertices;
-        int numEdges;
         int optimal = 0;
-        int[] edgeCapacities;
 
         StdOut.println("Cplex");
-
-        // The number of terminal vertices
-        k = in.readInt();
-
-        // Create the flow network from the text file
-        readTerminals(in, k, terminals);
-        numVertices = in.readInt();
-        flowNetwork = new FlowNetwork(in, numVertices);
-        in.close();
-
-        // Read the data for the cplex model
-        edges = flowNetwork.getEdges();
-        numEdges = flowNetwork.numEdges();
-        edgeCapacities = flowNetwork.getEdgeCapacities();
 
         // Try to optimize the model
         try {
 
             // Create the modeler/solver object
             IloCplex cplex = new IloCplex();
-            IloNumVar[] edgeLabelSums = new IloNumVar[numEdges];
-            populateByRow(cplex, edgeLabelSums, k, numVertices, numEdges, edges, edgeCapacities, terminals);
+            cplex.setOut(null);
+
+            IloNumVar[] edgeLabelSums = new IloNumVar[flowNetwork.getNumEdges()];
+            populateByRow(cplex, edgeLabelSums, flowNetwork);
 
             // Examine the solution
             if (cplex.solve()) {
 
-                System.out.println();
-                System.out.println("Solution status = " + cplex.getStatus());
-                System.out.println();
-                System.out.println("Optimal = " + cplex.getObjValue());
+                //System.out.println();
+                //System.out.println("Solution status = " + cplex.getStatus());
+                //System.out.println();
+                //System.out.println("Optimal = " + cplex.getObjValue());
                 optimal = (int)cplex.getObjValue();
+                StdOut.println("The weight of the multiway cut: " + optimal);
 
                 // Display which edges form the optimal multiway cut
-                for (int i = 0; i < numEdges; i++) {
+                for (int i = 0; i < flowNetwork.getNumEdges(); i++) {
 
-                    System.out.println("Edge " + i + " = " + cplex.getValue(edgeLabelSums[i]));
+                    //System.out.println("Edge " + i + " = " + cplex.getValue(edgeLabelSums[i]));
 
                 } //end for
-
-                System.out.println();
 
             } //end if
 

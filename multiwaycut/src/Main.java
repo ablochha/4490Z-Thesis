@@ -1,57 +1,52 @@
 import algorithms.LocalSearch;
 import cplex.MultiwayCutSolver;
-import library.In;
 import library.StdOut;
 import algorithms.IsolationHeuristic;
+import utility.ConnectedComponentSearcher;
+import utility.GraphFormatReader;
 
 /**
  * Created by Bloch-Hansen on 2017-01-23.
  */
 public class Main {
 
-    public static final String EXAMPLE1 = "data" + System.getProperty("file.separator") + "testnetwork1.txt";
-    public static final String EXAMPLE2 = "data" + System.getProperty("file.separator") + "testnetwork2.txt";
-    public static final String FIVEBYFIVE_1 = "data" + System.getProperty("file.separator") + "5x5_1.txt";
-    public static final String FIVEBYFIVE_2 = "data" + System.getProperty("file.separator") + "5x5_2.txt";
-    public static final String FIVEBYFIVE_3 = "data" + System.getProperty("file.separator") + "5x5_3.txt";
-    public static final String FIVEBYFIVE_4 = "data" + System.getProperty("file.separator") + "5x5_4.txt";
-    public static final String FIVEBYFIVE_5 = "data" + System.getProperty("file.separator") + "5x5_5.txt";
-    public static final String FIVEBYFIVE_6 = "data" + System.getProperty("file.separator") + "5x5_6.txt";
+    private static final String SLASH = System.getProperty("file.separator");
 
-    public static final String CURRENT = FIVEBYFIVE_6;
+    public static final String EXAMPLE1 = "data" + SLASH + "testnetwork2.txt";
+
+    public static final String FIVEBYFIVE_1 = "data" + SLASH + "5x5_1.txt";
+    public static final String FIVEBYFIVE_2 = "data" + SLASH + "5x5_2.txt";
+    public static final String FIVEBYFIVE_3 = "data" + SLASH + "5x5_3.txt";
+    public static final String FIVEBYFIVE_4 = "data" + SLASH + "5x5_4.txt";
+    public static final String FIVEBYFIVE_5 = "data" + SLASH + "5x5_5.txt";
+    public static final String FIVEBYFIVE_6 = "data" + SLASH + "5x5_6.txt";
+
+    public static final String DIMACS1 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-1.mis";
+    public static final String DIMACS2 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-2.mis";
+    public static final String DIMACS3 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-3.mis";
+    public static final String DIMACS4 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-4.mis";
+    public static final String DIMACS5 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-5.mis";
+    public static final String DIMACS6 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-6.mis";
+
+    public static final String CURRENT = EXAMPLE1;
 
     public static void main(String[] args) {
 
         IsolationHeuristic isolationHeuristic = new IsolationHeuristic();
         LocalSearch localSearch = new LocalSearch();
         MultiwayCutSolver solver = new MultiwayCutSolver();
+        GraphFormatReader reader = new GraphFormatReader();
+        //ConnectedComponentSearcher searcher = new ConnectedComponentSearcher();
 
-        int ihCost = 0;
-        int lsCost = 0;
-        int optimal = 0;
+        //searcher.getLargestConnectedComponent(reader.parse(CURRENT));
 
-        // Run the example graph
-        try {
+        int ihCost = isolationHeuristic.computeMultiwayCut(reader.parse(CURRENT));
+        int lsCost = localSearch.computeMultiwayCut(reader.parse(CURRENT));
+        int optimal = solver.computeMultiwayCut(reader.parse(CURRENT));
 
-            In in = new In(CURRENT);
-            ihCost = isolationHeuristic.computeMultiwayCut(in);
-
-            in = new In(CURRENT);
-            lsCost = localSearch.computeMultiwayCut(in);
-
-            in = new In(CURRENT);
-            optimal = solver.computeMultiwayCut(in);
-
-            StdOut.println("Isolation Heuristic: " + ihCost + ", Local Search (" + localSearch.iterations + " iterations): " + lsCost + ", Cplex: " + optimal);
-
-        } //end try
-
-        // The file didn't work
-        catch (Exception e) {
-
-            StdOut.println("The graph failed, reason: " + e);
-
-        } //end catch
+        StdOut.println("Isolation Heuristic: " + ihCost +
+                       ", Local Search (" + localSearch.iterations + " iterations): " + lsCost +
+                       ", Cplex: " + optimal);
 
     } //end main
 
