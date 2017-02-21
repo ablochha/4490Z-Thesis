@@ -2,11 +2,14 @@ package cplex;
 
 import datastructures.flownetwork.FlowEdge;
 import datastructures.flownetwork.FlowNetwork;
+import datastructures.flownetwork.FlowVertex;
 import ilog.concert.*;
 import ilog.cplex.*;
 import library.StdOut;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * Created by Bloch-Hansen on 2017-02-15.
@@ -25,13 +28,13 @@ public class MultiwayCutSolver {
         int k = flowNetwork.getK();
         int[] edgeCapacities = flowNetwork.getEdgeCapacities();
 
-        IloNumVar[][] vertexLabels = new IloNumVar[n][k];
+        Map<Integer, IloNumVar[]> vertexLabels = new LinkedHashMap<>();
         IloNumVar[][] edgeLabels = new IloNumVar[m][k];
 
         // Initialize the boolean labels for the vertices
-        for (int i = 0; i < n; i++) {
+        for (Map.Entry<Integer, FlowVertex> entry : flowNetwork.getVertices().entrySet()) {
 
-            vertexLabels[i] = model.boolVarArray(k);
+            vertexLabels.put(entry.getValue().id(), model.boolVarArray(k));
 
         } //end for
 
@@ -46,9 +49,9 @@ public class MultiwayCutSolver {
         model.addMinimize(model.prod(0.5, model.scalProd(edgeCapacities, edgeLabelSums)));
 
         // A vertex can only be in a single partition
-        for (int i = 0; i < n; i++) {
+        for (Map.Entry<Integer, FlowVertex> entry : flowNetwork.getVertices().entrySet()) {
 
-            model.addEq(model.sum(vertexLabels[i]), 1.0);
+            model.addEq(model.sum(vertexLabels.get(entry.getValue().id())), 1.0);
 
         } //end for
 
@@ -62,7 +65,7 @@ public class MultiwayCutSolver {
         // Terminal vertices are locked into their partitions
         for (int i = 0; i < k; i++) {
 
-            model.addEq(vertexLabels[terminals.get(i)][i], 1.0);
+            model.addEq(vertexLabels.get(terminals.get(i))[i], 1.0);
 
         } //end for
 
@@ -76,15 +79,15 @@ public class MultiwayCutSolver {
 
                 // xu[i] - xv[i] <= ze[i]
                 model.addLe(model.sum(
-                            model.prod(1.0, vertexLabels[edge.getStartVertex().id()][j]),
-                            model.prod(-1.0, vertexLabels[edge.getEndVertex().id()][j])),
-                            edgeLabels[i][j]);
+                        model.prod(1.0, vertexLabels.get(edge.getStartVertex().id())[j]),
+                        model.prod(-1.0, vertexLabels.get(edge.getEndVertex().id())[j])),
+                        edgeLabels[i][j]);
 
                 // xv[i] - xu[i] <= ze[i]
                 model.addLe(model.sum(
-                            model.prod(1.0, vertexLabels[edge.getEndVertex().id()][j]),
-                            model.prod(-1.0, vertexLabels[edge.getStartVertex().id()][j])),
-                            edgeLabels[i][j]);
+                        model.prod(1.0, vertexLabels.get(edge.getEndVertex().id())[j]),
+                        model.prod(-1.0, vertexLabels.get(edge.getStartVertex().id())[j])),
+                        edgeLabels[i][j]);
 
             } //end for
 
