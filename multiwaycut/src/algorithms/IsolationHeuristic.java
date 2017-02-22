@@ -29,12 +29,12 @@ public class IsolationHeuristic {
         LinkedList<Integer> t = flowNetwork.getTerminals();
 
         int k = flowNetwork.getK();
-        int n = flowNetwork.getNumVertices();
+        int n = flowNetwork.getMaxVertexId();
 
         // Add an edge from each vertex to the sink with an infinity edge
         for (int i = 0; i < k; i++) {
 
-            flowNetwork.addEdge(t.get(i), n - 1, Integer.MAX_VALUE);
+            flowNetwork.addEdge(t.get(i), n, Integer.MAX_VALUE);
 
         } //end for
 
@@ -53,7 +53,7 @@ public class IsolationHeuristic {
         LinkedList<Integer> t = flowNetwork.getTerminals();
 
         int k = flowNetwork.getK();
-        int n = flowNetwork.getNumVertices();
+        int n = flowNetwork.getMaxVertexId();
 
         // Compute a minimum cut to isolate each of the k terminal vertices
         for (int i = 0; i < k; i++) {
@@ -61,17 +61,17 @@ public class IsolationHeuristic {
             int sum = 0;
 
             // Remove the infinity edge for the current source vertex
-            flowNetwork.removeEdge(t.get(i), n - 1);
+            flowNetwork.removeEdge(t.get(i), n);
 
             // Add back the infinity edge to the previous terminal vertex
             if (i > 0) {
 
-                flowNetwork.addEdge(t.get(i - 1),n - 1, Integer.MAX_VALUE);
+                flowNetwork.addEdge(t.get(i - 1), n, Integer.MAX_VALUE);
 
             } //end if
 
             // Compute the minimum cut for the specified terminal vertex, store the edges
-            LinkedList<FlowEdge> minCut = flowNetwork.goldbergTarjan(t.get(i),n - 1);
+            LinkedList<FlowEdge> minCut = flowNetwork.goldbergTarjan(t.get(i), n);
             allMinCut.add(minCut);
 
             ListIterator<FlowEdge> it = minCut.listIterator();
@@ -195,7 +195,7 @@ public class IsolationHeuristic {
 
         StdOut.println("Isolation Heuristic");
 
-        flowNetwork.addVertex(flowNetwork.getNumVertices());
+        flowNetwork.addVertex(flowNetwork.getMaxVertexId() + 1);
         initializeInfinityEdges(flowNetwork);
         computeMinimumCut(flowNetwork, allMinCut, cutWeights);
         heavyIndex = computeHeaviestCut(flowNetwork.getK(), cutWeights);

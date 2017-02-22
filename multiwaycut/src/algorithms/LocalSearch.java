@@ -245,18 +245,12 @@ public class LocalSearch {
         // Loop until no significant improved solutions are found
         while (true) {
 
-            //bestLabelling = labelling;
             bestLabelCost = labelCost;
 
             // Do a relabel operation for each label
             for (int i = 0; i < flowNetwork.getK(); i++) {
 
                 iterations++;
-
-                // TODO
-                // The new DIMACS graphs are not fully connected
-                // Extract the largest connected component for the multiway cut problem
-                // There are bugs with how these graphs dont count vertices the same way i do
 
                 newLabelling = computeMinimumCostRelabel(flowNetwork, flowNetwork.getTerminals(), i);
                 flowNetwork.relabel(newLabelling);

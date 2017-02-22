@@ -1,5 +1,7 @@
 package datastructures.flownetwork;
 
+import library.StdOut;
+
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map;
@@ -23,6 +25,47 @@ public class FlowNetwork {
         this.k = 0;
         this.graph = new Graph();
         this.terminals = new LinkedList<>();
+
+    } //end FlowNetwork
+
+    public FlowNetwork(LinkedList<FlowEdge> edges, LinkedList<Integer> terminals, int k) {
+
+        this();
+        this.k = k;
+
+        ListIterator<FlowEdge> itEdges = edges.listIterator();
+
+        while (itEdges.hasNext()) {
+
+            FlowEdge edge = itEdges.next();
+
+            this.addVertex(edge.getStartVertex().id());
+            this.addVertex(edge.getEndVertex().id());
+            this.addEdge(edge.getStartVertex().id(), edge.getEndVertex().id(), edge.getCapacity());
+
+        } //end while
+
+        this.setTerminals(terminals);
+
+        ListIterator<Integer> itTerminals = terminals.listIterator();
+
+        while (itTerminals.hasNext()) {
+
+            int terminal = itTerminals.next();
+
+            if (!this.containsVertex(terminal)) {
+
+                throw new IllegalArgumentException("Terminal " + terminal + " not located in the largest connected component");
+
+            } //end if
+
+        } //end while
+
+    } //end FlowNetwork
+
+    public FlowNetwork(FlowNetwork flowNetwork) {
+
+        this(flowNetwork.getEdges(), flowNetwork.getTerminals(), flowNetwork.getK());
 
     } //end FlowNetwork
 
@@ -184,6 +227,12 @@ public class FlowNetwork {
 
     } //end removeVertex
 
+    public boolean containsVertex(int id) {
+
+        return graph.containsVertex(id);
+
+    } //end containsVertex
+
     public void setLocalSearchLabel(int id, int i) {
 
         graph.setLocalSearchLabel(id, i);
@@ -316,6 +365,12 @@ public class FlowNetwork {
         return getVertices().size();
 
     } //end getNumVertices
+
+    public int getMaxVertexId() {
+
+        return graph.getMaxVertexId();
+
+    } //end getMaxVertexId
 
     public LinkedList<FlowEdge> getEdges() {
 

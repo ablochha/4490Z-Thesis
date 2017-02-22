@@ -3,6 +3,7 @@ package utility;
 import datastructures.flownetwork.FlowNetwork;
 import library.In;
 import library.StdOut;
+import library.StdRandom;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

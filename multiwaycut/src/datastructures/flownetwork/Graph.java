@@ -466,7 +466,8 @@ public class Graph {
 
             for (FlowEdge edge : entry.getValue().getAllEdges()) {
 
-                if ((entry.getValue() == edge.getStartVertex()) && (marked.get(edge.getStartVertex().id())) && (!marked.get(edge.getEndVertex().id()))) {
+                if ((entry.getValue() == edge.getStartVertex()) && (marked.get(edge.getStartVertex().id())) &&
+                        (!marked.get(edge.getEndVertex().id())) && (edge.getCapacity() < 2147483647)) {
 
                     minCut.add(edge);
 
@@ -476,7 +477,8 @@ public class Graph {
 
             for (FlowEdge edge : entry.getValue().getAllResEdges()) {
 
-                if ((entry.getValue() == edge.getEndVertex()) && (marked.get(edge.getEndVertex().id())) && (!marked.get(edge.getStartVertex().id()))) {
+                if ((entry.getValue() == edge.getEndVertex()) && (marked.get(edge.getEndVertex().id())) &&
+                        (!marked.get(edge.getStartVertex().id())) && (edge.getCapacity() < 2147483647)) {
 
                     minCut.add(edge);
 
@@ -495,6 +497,24 @@ public class Graph {
         return vertices;
 
     } //end getVertices
+
+    public int getMaxVertexId() {
+
+        int maxId = -1;
+
+        for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
+
+            if (entry.getValue().id() > maxId) {
+
+                maxId = entry.getValue().id();
+
+            } //end if
+
+        } //end for
+
+        return maxId;
+
+    } //end getMaxVertexId
 
     public void test() {
 
