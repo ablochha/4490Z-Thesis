@@ -1,7 +1,9 @@
 package utility;
 
+import datastructures.flownetwork.FlowEdge;
 import datastructures.flownetwork.FlowNetwork;
 import library.In;
+import library.Out;
 import library.StdOut;
 import library.StdRandom;
 
@@ -10,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,10 +29,15 @@ public class GraphFormatReader {
 
         switch(text) {
 
-            case "DIMACS":
+            case "DIMACS1":
 
                 format.close();
-                return parseDIMACS(filename);
+                return parseDIMACS(filename, false);
+
+            case "DIMACS2":
+
+                format.close();
+                return parseDIMACS(filename, true);
 
             case "OTHER":
 
@@ -39,13 +47,13 @@ public class GraphFormatReader {
             default:
 
                 format.close();
-                return null;
+                throw new IllegalArgumentException("Unrecognized graph format");
 
         } //end switch
 
     } //end parse
 
-    private FlowNetwork parseDIMACS(String filename) {
+    private FlowNetwork parseDIMACS(String filename, boolean edgeWeights) {
 
         In in = new In(filename);
         FlowNetwork flowNetwork = new FlowNetwork();
@@ -79,7 +87,20 @@ public class GraphFormatReader {
 
         } //end if
 
-        final Pattern e = Pattern.compile("e\\s+(\\d+)\\s+(\\d+)\\s*");
+        final Pattern e;
+
+        if (edgeWeights) {
+
+            e = Pattern.compile("e\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s*");
+
+        } //end if
+
+        else {
+
+            e = Pattern.compile("e\\s+(\\d+)\\s+(\\d+)\\s*");
+
+        } //end else
+
         final Matcher me = e.matcher("");
 
         for (String line = in.readLine(); line != null; line = in.readLine()) {
@@ -93,13 +114,69 @@ public class GraphFormatReader {
 
                 flowNetwork.addVertex(u);
                 flowNetwork.addVertex(v);
-                flowNetwork.addEdge(u, v, 1);
+
+                if (edgeWeights) {
+
+                    flowNetwork.addEdge(u, v, Integer.parseInt(me.group(3)));
+
+                } //end if
+
+                else {
+
+                    if (flowNetwork.getTerminals().contains(u) | flowNetwork.getTerminals().contains(v)) {
+
+                        flowNetwork.addEdge(u, v, StdRandom.uniform(500, 1000));
+                        //flowNetwork.addEdge(u, v, 1);
+
+                    } //end if
+
+                    else {
+
+                        flowNetwork.addEdge(u, v, StdRandom.uniform(1, 5));
+                        //flowNetwork.addEdge(u, v, 1);
+
+                    } //end else
+
+                } //end else
 
             } //end if
 
         } //end for
 
         in.close();
+
+        if (!edgeWeights) {
+
+            Out out = new Out(filename.substring(0, filename.length() - 4) + "_edges.txt");
+
+            out.println("DIMACS2");
+            out.print(flowNetwork.getK());
+
+            ListIterator<Integer> itTerminals = flowNetwork.getTerminals().listIterator();
+
+            while (itTerminals.hasNext()) {
+
+                out.print(" " + itTerminals.next());
+
+            } //end while
+
+            out.println();
+            out.println("p edge " + flowNetwork.getNumVertices() + " " + flowNetwork.getNumEdges());
+
+            ListIterator<FlowEdge> itEdges = flowNetwork.getEdges().listIterator();
+
+            while (itEdges.hasNext()) {
+
+                FlowEdge edge = itEdges.next();
+
+                out.println("e " + edge.getStartVertex().id() + " " + edge.getEndVertex().id() + " " + edge.getCapacity());
+
+            } //end while
+
+            out.close();
+
+        } //end if
+
         return flowNetwork;
 
     } //end parseDIMACS

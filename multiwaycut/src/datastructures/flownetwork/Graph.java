@@ -467,7 +467,7 @@ public class Graph {
             for (FlowEdge edge : entry.getValue().getAllEdges()) {
 
                 if ((entry.getValue() == edge.getStartVertex()) && (marked.get(edge.getStartVertex().id())) &&
-                        (!marked.get(edge.getEndVertex().id())) && (edge.getCapacity() < 2147483647)) {
+                        (!marked.get(edge.getEndVertex().id()))) {
 
                     minCut.add(edge);
 
@@ -478,7 +478,7 @@ public class Graph {
             for (FlowEdge edge : entry.getValue().getAllResEdges()) {
 
                 if ((entry.getValue() == edge.getEndVertex()) && (marked.get(edge.getEndVertex().id())) &&
-                        (!marked.get(edge.getStartVertex().id())) && (edge.getCapacity() < 2147483647)) {
+                        (!marked.get(edge.getStartVertex().id()))) {
 
                     minCut.add(edge);
 

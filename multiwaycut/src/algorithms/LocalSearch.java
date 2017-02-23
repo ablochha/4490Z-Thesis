@@ -33,7 +33,7 @@ public class LocalSearch {
 
         LinkedList<FlowEdge> minCut;
 
-        int nextId = 0;
+        int nextId = flowNetwork.getMaxVertexId() + 1;
         int sourceId;
         int sinkId;
 
@@ -42,7 +42,7 @@ public class LocalSearch {
 
             relabel.addVertex(entry.getValue().id());
             relabel.setLocalSearchLabel(entry.getValue().id(), entry.getValue().getLocalSearchLabel());
-            nextId++;
+            //nextId++;
 
         } //end for
 

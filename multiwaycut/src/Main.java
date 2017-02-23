@@ -23,16 +23,37 @@ public class Main {
     private static final String FIVEBYFIVE_5 = "data" + SLASH + "5x5_5.txt";
     private static final String FIVEBYFIVE_6 = "data" + SLASH + "5x5_6.txt";
 
+    private static final String C125_9_1 = "data" + SLASH + "challenge2" + SLASH + "c125_9_1.txt";
+    private static final String C125_9_2 = "data" + SLASH + "challenge2" + SLASH + "c125_9_2.txt";
+    private static final String C125_9_1_EDGES = "data" + SLASH + "challenge2" + SLASH + "c125_9_1_edges.txt";
+    private static final String C125_9_2_EDGES = "data" + SLASH + "challenge2" + SLASH + "c125_9_2_edges.txt";
+
+    private static final String BROCK200_2_1 = "data" + SLASH + "challenge2" + SLASH + "brock200_2_1.txt";
+    private static final String BROCK200_2_2 = "data" + SLASH + "challenge2" + SLASH + "brock200_2_2.txt";
+    private static final String BROCK200_2_1_EDGES = "data" + SLASH + "challenge2" + SLASH + "brock200_2_1_edges.txt";
+    private static final String BROCK200_2_2_EDGES = "data" + SLASH + "challenge2" + SLASH + "brock200_2_2_edges.txt";
+
+    private static final String P_HAT300_1_1 = "data" + SLASH + "challenge2" + SLASH + "p_hat300_1_1.txt";
+    private static final String P_HAT300_1_2 = "data" + SLASH + "challenge2" + SLASH + "p_hat300_1_2.txt";
+    private static final String P_HAT300_1_1_EDGES = "data" + SLASH + "challenge2" + SLASH + "p_hat300_1_1_edges.txt";
+    private static final String P_HAT300_1_2_EDGES = "data" + SLASH + "challenge2" + SLASH + "p_hat300_1_2_edges.txt";
+
     private static final String DIMACS_FRB30_15_1_1 = "data" + SLASH + "frb30-15" + SLASH + "frb30-15-1_1.txt";
+    private static final String DIMACS_FRB30_15_1_2 = "data" + SLASH + "frb30-15" + SLASH + "frb30-15-1_2.txt";
+    private static final String DIMACS_FRB30_15_1_1_EDGES = "data" + SLASH + "frb30-15" + SLASH + "frb30-15-1_1_edges.txt";
+    private static final String DIMACS_FRB30_15_1_2_EDGES = "data" + SLASH + "frb30-15" + SLASH + "frb30-15-1_2_edges.txt";
 
-    private static final String DIMACS_FRB59_26_1_1 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-1_1.txt";
-    private static final String DIMACS_FRB59_26_1_2 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-1_2.txt";
-    private static final String DIMACS_FRB59_26_1_3 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-1_3.txt";
-    private static final String DIMACS_FRB59_26_1_4 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-1_4.txt";
-    private static final String DIMACS_FRB59_26_1_5 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-1_5.txt";
-    private static final String DIMACS_FRB59_26_1_6 = "data" + SLASH + "frb59-26-mis" + SLASH + "frb59-26-1_6.txt";
+    private static final String P_HAT700_1_1 = "data" + SLASH + "challenge2" + SLASH + "p_hat700_1_1.txt";
+    private static final String P_HAT700_1_2 = "data" + SLASH + "challenge2" + SLASH + "p_hat700_1_2.txt";
+    private static final String P_HAT700_1_1_EDGES = "data" + SLASH + "challenge2" + SLASH + "p_hat700_1_1_edges.txt";
+    private static final String P_HAT700_1_2_EDGES = "data" + SLASH + "challenge2" + SLASH + "p_hat700_1_2_edges.txt";
 
-    private static final String CURRENT = DIMACS_FRB59_26_1_1;
+    private static final String DIMACS_FRB59_26_1_1 = "data" + SLASH + "frb59-26" + SLASH + "frb59-26-1_1.txt";
+    private static final String DIMACS_FRB59_26_1_2 = "data" + SLASH + "frb59-26" + SLASH + "frb59-26-1_2.txt";
+    private static final String DIMACS_FRB59_26_1_1_EDGES = "data" + SLASH + "frb59-26" + SLASH + "frb59-26-1_1_edges.txt";
+    private static final String DIMACS_FRB59_26_1_2_EDGES = "data" + SLASH + "frb59-26" + SLASH + "frb59-26-1_2_edges.txt";
+
+    private static final String CURRENT = DIMACS_FRB30_15_1_2;
 
     public static void main(String[] args) {
 
