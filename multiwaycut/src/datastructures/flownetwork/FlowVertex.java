@@ -29,8 +29,8 @@ public class FlowVertex {
         this.label = 0;
         this.iteratorAugPath = 0;
         this.deadEnd = false;
-        adjacencyList = new LinkedList<FlowEdge>();
-        resAdjacencyList = new LinkedList<FlowEdge>();
+        adjacencyList = new LinkedList<>();
+        resAdjacencyList = new LinkedList<>();
 
     } //end Vertex
 

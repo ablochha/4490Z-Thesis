@@ -87,6 +87,12 @@ public class FlowEdge {
 		return capacity;
 		
 	} //end capacity
+
+	public void setCapacity(int capacity) {
+
+		this.capacity = capacity;
+
+	} //end setCapacity
 	
 	/**
 	 * Returns the flow of an edge

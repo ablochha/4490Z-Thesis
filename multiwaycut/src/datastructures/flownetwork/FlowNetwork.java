@@ -2,9 +2,7 @@ package datastructures.flownetwork;
 
 import library.StdOut;
 
-import java.util.LinkedList;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Bloch-Hansen on 2017-01-23.
@@ -308,13 +306,17 @@ public class FlowNetwork {
             graph.initializeLabels(sourceId);
 
             int queueLength = graph.initialPush(sourceId, sinkId);
-
+int debug = 0;
             while (queueLength > 0) {
-                //this.test();
+
+                //if (debug % 50000 == 0)
+                    //StdOut.println("THIS IS MADNESS: " + queueLength);
                 queueLength = graph.dischargeQueue();
-
+                //debug++;
             } //end while
-
+            //System.out.println("Just about to cut the graph. Press \"ENTER\" to continue...");
+            //Scanner scanner = new Scanner(System.in);
+            //scanner.nextLine();
             //test();
             return graph.minCut(sinkId, sourceId);
 
@@ -337,6 +339,21 @@ public class FlowNetwork {
     } //end initialLocalSearchLabel
 
     public int localSearchLabelCost() {
+
+        /*int [] labelCounts = new int[k];
+        Arrays.fill(labelCounts, 0);
+
+        for (Map.Entry<Integer, FlowVertex> entry : graph.getVertices().entrySet()) {
+
+            labelCounts[entry.getValue().getLocalSearchLabel()]++;
+
+        } //end for
+
+        for (int i = 0; i < k; i++) {
+
+            StdOut.println("Label " + i + " has " + labelCounts[i] + "vertices");
+
+        } //end for*/
 
         return graph.localSearchLabelCost();
 

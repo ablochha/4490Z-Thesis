@@ -319,7 +319,7 @@ public class Graph {
 
         startVertex = vertices.get(startVertexId);
         endVertex = vertices.get(endVertexId);
-        queue = new LinkedList<FlowVertex>();
+        queue = new LinkedList<>();
 
         LinkedList<FlowEdge> startEdges = startVertex.getAllEdges();
         ListIterator<FlowEdge> it = startEdges.listIterator();
@@ -373,7 +373,7 @@ public class Graph {
         } //end while
 
         if (headVertex.getExcess() > 0) {
-            //StdOut.println("Added to queue22: " + headVertex.vertexToString() + " " + headVertex.isSaturated() + " Source: " + startVertex.id() + ", Sink: " + endVertex.id());
+            //StdOut.println("Added to queue22: " + headVertex.vertexToString() + " Source: " + startVertex.id() + ", Sink: " + endVertex.id());
             headVertex.resetIncreasedLabel();
             queue.add(headVertex);
 
