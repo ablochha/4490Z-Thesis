@@ -8,6 +8,7 @@ import library.Out;
 import library.StdOut;
 import library.StdRandom;
 
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -22,30 +23,47 @@ import java.util.regex.Pattern;
  */
 public class GraphFormatReader {
 
-    public FlowNetwork parse(String filename) {
+    private static final String DIMACS1 = "DIMACS1";
+    private static final String DIMACS2 = "DIMACS2";
+    private static final String DIMACS3 = "DIMACS3";
+    private static final String CONCENTRIC = "CONCENTRIC";
+    private static final String GEOGRAPHIC = "GEOGRAPHIC";
+    private static final String OTHER = "OTHER";
+
+    public FlowNetwork parse(String filename, String outName) {
 
         In format = new In(filename);
 
         String text = format.readLine();
 
-        switch(text) {
+        switch (text) {
 
-            case "DIMACS1":
-
-                format.close();
-                return parseDIMACS(filename, false);
-
-            case "DIMACS2":
+            case DIMACS1:
 
                 format.close();
-                return parseDIMACS(filename, true);
+                return parseDIMACS(filename,false, false, outName);
 
-            case "CONCENTRIC":
+            case DIMACS2:
 
                 format.close();
-                return parseConcentric(filename);
+                return parseDIMACS(filename, true, false, outName);
 
-            case "OTHER":
+            case DIMACS3:
+
+                format.close();
+                return parseDIMACS(filename, true, true, outName);
+
+            case CONCENTRIC:
+
+                format.close();
+                return parseConcentric(filename, outName);
+
+            case GEOGRAPHIC:
+
+                format.close();
+                return parseGeographic(filename, outName);
+
+            case OTHER:
 
                 format.close();
                 return parseOther(filename);
@@ -59,7 +77,7 @@ public class GraphFormatReader {
 
     } //end parse
 
-    private FlowNetwork parseDIMACS(String filename, boolean edgeWeights) {
+    private FlowNetwork parseDIMACS(String filename, boolean edgeWeights, boolean genTerminals, String outName) {
 
         In in = new In(filename);
         FlowNetwork flowNetwork = new FlowNetwork();
@@ -68,7 +86,13 @@ public class GraphFormatReader {
 
         in.readLine();
         flowNetwork.setK(in.readInt());
-        flowNetwork.setTerminals(readTerminals(in, flowNetwork.getK()));
+
+        if (!genTerminals) {
+
+            flowNetwork.setTerminals(readTerminals(in, flowNetwork.getK()));
+
+        } //end if
+
         in.readLine();
 
         final Pattern p = Pattern.compile("p\\s+edge\\s+(\\d+)\\s+(\\d+)\\s*");
@@ -90,6 +114,12 @@ public class GraphFormatReader {
         if (numVertices < 0) {
 
             throw new IllegalArgumentException("Bad header line: " + filename);
+
+        } //end if
+
+        if (genTerminals) {
+
+            flowNetwork.setTerminals(generateTerminals(flowNetwork.getK(), 1, numVertices));
 
         } //end if
 
@@ -153,7 +183,7 @@ public class GraphFormatReader {
 
         if (!edgeWeights) {
 
-            outputGraph(flowNetwork, filename);
+            outputGraph(flowNetwork, filename, outName);
 
         } //end if
 
@@ -200,15 +230,18 @@ public class GraphFormatReader {
 
     } //end parseOther
 
-    private FlowNetwork parseConcentric(String filename) {
+    private FlowNetwork parseConcentric(String filename, String outName) {
 
         In in = new In(filename);
         FlowNetwork flowNetwork = new FlowNetwork();
         ConnectedComponentSearcher searcher = new ConnectedComponentSearcher();
 
+        String decay;
+
         int numVertices;
         int initialDensity;
 
+        double terminalDensityMultiplier;
         double initialCapacity1;
         double initialCapacity2;
 
@@ -216,9 +249,12 @@ public class GraphFormatReader {
         flowNetwork.setK(in.readInt());
         numVertices = in.readInt();
         initialDensity = in.readInt();
+        terminalDensityMultiplier = in.readDouble();
         initialCapacity1 = in.readDouble();
         initialCapacity2 = in.readDouble();
-        flowNetwork.setTerminals(generateTerminals(flowNetwork.getK(), numVertices));
+        in.readLine();
+        decay = in.readString();
+        flowNetwork.setTerminals(generateTerminals(flowNetwork.getK(), 0, numVertices));
 
         in.close();
 
@@ -257,14 +293,81 @@ public class GraphFormatReader {
         } //end for
 
         searcher.connectComponents(flowNetwork);
-        searcher.concentricEdges(flowNetwork);
-        searcher.concentricEdgeCapacities(flowNetwork, initialCapacity1, initialCapacity2);
+        searcher.concentricEdges(flowNetwork, terminalDensityMultiplier, decay, CONCENTRIC);
+        searcher.concentricEdgeCapacities(flowNetwork, initialCapacity1, initialCapacity2, decay, CONCENTRIC);
 
-        outputGraph(flowNetwork, filename);
+        outputGraph(flowNetwork, filename, outName);
 
         return flowNetwork;
 
     } //end parseConcentric
+
+    private FlowNetwork parseGeographic(String filename, String outName) {
+
+        In in = new In(filename);
+        FlowNetwork flowNetwork = new FlowNetwork();
+        ConnectedComponentSearcher searcher = new ConnectedComponentSearcher();
+
+        String decay;
+
+        int numVertices;
+
+        double terminalDensityMultiplier;
+        double initialCapacity1;
+        double initialCapacity2;
+        double xModifier;
+        double yModifier;
+
+        in.readLine();
+        flowNetwork.setK(in.readInt());
+        numVertices = in.readInt();
+        terminalDensityMultiplier = in.readDouble();
+        xModifier = in.readDouble();
+        yModifier = in.readDouble();
+        initialCapacity1 = in.readDouble();
+        initialCapacity2 = in.readDouble();
+        in.readLine();
+        decay = in.readString();
+        flowNetwork.setTerminals(generateTerminals(flowNetwork.getK(), 0, numVertices));
+
+        in.close();
+
+        if (numVertices < 0) {
+
+            throw new IllegalArgumentException("Choose a nonnegative number of vertices and edges");
+
+        } //end if
+
+        // Add the vertices
+        for (int i = 0; i < numVertices; i++) {
+
+            flowNetwork.addVertex(i);
+
+            int x = StdRandom.uniform(0, (int) (xModifier * numVertices - 1));
+            int y = StdRandom.uniform(0, (int) (yModifier * numVertices - 1));
+
+            boolean success = flowNetwork.setCoordinates(i, new Point(x, y));
+
+            while (!success) {
+
+                x = StdRandom.uniform(0, (int) (xModifier * numVertices - 1));
+                y = StdRandom.uniform(0, (int) (yModifier * numVertices - 1));
+
+                success = flowNetwork.setCoordinates(i, new Point(x, y));
+
+            } //end while
+
+        } //end for
+
+        searcher.concentricEdges(flowNetwork, terminalDensityMultiplier, decay, GEOGRAPHIC);
+        searcher.connectComponents(flowNetwork);
+        searcher.concentricEdgeCapacities(flowNetwork, initialCapacity1, initialCapacity2, decay, GEOGRAPHIC);
+
+        outputGraph(flowNetwork, filename, outName);
+
+        return flowNetwork;
+
+    } //end parseGeographic
 
     /**
      * Reads the terminal vertices to be isolated.
@@ -291,17 +394,17 @@ public class GraphFormatReader {
 
     } //end readTerminals
 
-    private LinkedList<Integer> generateTerminals(int k, int numVertices) {
+    private LinkedList<Integer> generateTerminals(int k, int start, int end) {
 
         LinkedList<Integer> terminals = new LinkedList<>();
 
         for (int i = 0; i < k; i++) {
 
-            int terminal = StdRandom.uniform(0, numVertices - 1);
+            int terminal = StdRandom.uniform(start, end - 1);
 
             while (terminals.contains(terminal)) {
 
-                terminal = StdRandom.uniform(0, numVertices - 1);
+                terminal = StdRandom.uniform(start, end - 1);
 
             } //end while
 
@@ -313,9 +416,9 @@ public class GraphFormatReader {
 
     } //end generateTerminals
 
-    private void outputGraph(FlowNetwork flowNetwork, String filename){
+    private void outputGraph(FlowNetwork flowNetwork, String filename, String outName){
 
-        Out out = new Out(filename.substring(0, filename.length() - 4) + "_edges16.txt");
+        Out out = new Out(filename.substring(0, filename.length() - 4) + outName);
 
         out.println("DIMACS2");
         out.print(flowNetwork.getK());

@@ -1,7 +1,10 @@
 package datastructures.flownetwork;
 
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import library.StdOut;
-
+import com.google.common.collect.TreeMultimap;
+import java.awt.*;
 import java.util.*;
 
 /**
@@ -11,6 +14,7 @@ public class FlowNetwork {
 
     private Graph graph;
     private LinkedList<Integer> terminals;
+    private Map<Integer, Point> coordinates;
 
     private int k;
     private int sourceId;
@@ -23,6 +27,7 @@ public class FlowNetwork {
         this.k = 0;
         this.graph = new Graph();
         this.terminals = new LinkedList<>();
+        this.coordinates = new LinkedHashMap<>();
 
     } //end FlowNetwork
 
@@ -90,6 +95,88 @@ public class FlowNetwork {
         return this.terminals;
 
     } //end getTerminals
+
+    public boolean setCoordinates(int id, Point coordinates) {
+
+        boolean found = false;
+
+        for (Map.Entry<Integer, Point> entry : this.coordinates.entrySet()) {
+
+            if (coordinates.equals(entry.getValue())) {
+
+                found = true;
+
+            } //end if
+
+        } //end found
+
+        if (!found) {
+
+            this.coordinates.put(id, coordinates);
+            return true;
+
+        } //end if
+
+        else {
+
+            return false;
+
+        } //end else
+
+    } //end setCoordinates
+
+    public double getProximity(int vertex) {
+
+        double closestTerminalDistance = Double.MAX_VALUE;
+        double secondClosetTerminalDistance = Double.MAX_VALUE;
+
+        int count = 0;
+
+        if (terminals.contains(vertex)) {
+
+            getVertices().get(vertex).setProximity(0.0);
+            return getVertices().get(vertex).getProximity();
+
+        } //end if
+
+        else {
+
+            for (int i = 0; i < terminals.size(); i++) {
+
+                double xDistance = Math.abs(this.coordinates.get(vertex).getX() - coordinates.get(terminals.get(i)).getX());
+                double yDistance = Math.abs(this.coordinates.get(vertex).getY() - coordinates.get(terminals.get(i)).getY());
+                double distance = Math.sqrt((xDistance * xDistance) + (yDistance * yDistance));
+
+                if (distance < closestTerminalDistance) {
+
+                    if (count > 0) {
+
+                        secondClosetTerminalDistance = closestTerminalDistance;
+
+                    } //end if
+
+                    closestTerminalDistance = distance;
+
+                } //end if
+
+                else if (distance < secondClosetTerminalDistance) {
+
+                    secondClosetTerminalDistance = distance;
+
+                } //end else if
+
+                count++;
+
+            } //end for
+
+        } //end else
+
+        //StdOut.println("CLOSEST: " + closestTerminalDistance + ", SECOND: " + secondClosetTerminalDistance);
+
+        getVertices().get(vertex).setProximity(closestTerminalDistance / (closestTerminalDistance + secondClosetTerminalDistance));
+        return getVertices().get(vertex).getProximity();
+
+    } //end getProximity
 
     public void setSource(int sourceId) {
 
@@ -431,6 +518,20 @@ int debug = 0;
         return getEdges().size();
 
     } //end getNumEdges
+
+    public TreeMultimap<Double, Integer> getProximityList() {
+
+        TreeMultimap<Double, Integer> proximities = TreeMultimap.create();
+
+        for (Map.Entry<Integer, FlowVertex> entry : getVertices().entrySet()) {
+
+            proximities.put(entry.getValue().getProximity(), entry.getKey());
+
+        } //end for
+
+        return proximities;
+
+    } //end getProximityList
 
     public void test() {
 

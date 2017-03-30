@@ -42,7 +42,6 @@ public class LocalSearch {
 
             relabel.addVertex(entry.getValue().id());
             relabel.setLocalSearchLabel(entry.getValue().id(), entry.getValue().getLocalSearchLabel());
-            //nextId++;
 
         } //end for
 
@@ -268,7 +267,7 @@ public class LocalSearch {
             } //end for
 
             //if (labelCost >= bestLabelCost) {
-            if (labelCost >= (1 - 1 / Math.pow(flowNetwork.getK(), 2)) * bestLabelCost) {
+            if (labelCost >= (1 - (1.0/1000.0) / Math.pow(flowNetwork.getK(), 2)) * bestLabelCost) {
 
                 bestLabelling = labelling;
                 bestLabelCost = labelCost;

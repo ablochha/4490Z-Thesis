@@ -109,11 +109,12 @@ public class MultiwayCutSolver {
 
             // Create the modeler/solver object
             IloCplex cplex = new IloCplex();
-            //cplex.setOut(null);
+            cplex.setOut(null);
             cplex.setParam(IloCplex.IntParam.NodeFileInd, 2);
             cplex.setParam(IloCplex.BooleanParam.MemoryEmphasis, true);
-            cplex.setParam(IloCplex.IntParam.Threads, 1);
+            cplex.setParam(IloCplex.IntParam.Threads, 4);
             cplex.setParam(IloCplex.IntParam.RootAlg, 4);
+            //cplex.setParam(IloCplex.IntParam.Cliques, 3);
 
             IloNumVar[] edgeLabelSums = new IloNumVar[flowNetwork.getNumEdges()];
             populateByRow(cplex, edgeLabelSums, flowNetwork);

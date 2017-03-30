@@ -16,6 +16,8 @@ public class FlowVertex {
     private int label;
     private int localSearchLabel;
     private int iteratorAugPath;
+    private int additionalEdges;
+    private double proximity;
     private LinkedList<FlowEdge> adjacencyList;
     private LinkedList<FlowEdge> resAdjacencyList;
     private boolean deadEnd;
@@ -28,6 +30,8 @@ public class FlowVertex {
         this.localSearchLabel = -1;
         this.label = 0;
         this.iteratorAugPath = 0;
+        this.additionalEdges = -1;
+        this.proximity = -1.0;
         this.deadEnd = false;
         adjacencyList = new LinkedList<>();
         resAdjacencyList = new LinkedList<>();
@@ -262,6 +266,40 @@ public class FlowVertex {
 
     } //end getAllResEdges
 
+    public int getNumEdges() {
+
+        return getAllEdges().size() + getAllResEdges().size();
+
+    } //end getNumEdges
+
+    public void setAdditionalEdges(int value) {
+
+        this.additionalEdges = value;
+
+    } //end setAdditionalEdges
+
+    public int getAdditionalEdges() {
+
+        return this.additionalEdges;
+
+    } //end getAdditionalEdges
+
+    public boolean isSaturated() {
+
+        if (getNumEdges() > this.additionalEdges) {
+
+            return true;
+
+        } //end if
+
+        else {
+
+            return false;
+
+        } //end else
+
+    } //end isSaturated
+
     public void clearResAdjacencyList() {
 
         resAdjacencyList = new LinkedList<FlowEdge>();
@@ -292,6 +330,18 @@ public class FlowVertex {
         return id;
 
     } //end id
+
+    public void setProximity(double value) {
+
+        this.proximity = value;
+
+    } //end public void setProximity
+
+    public double getProximity() {
+
+        return this.proximity;
+
+    } //end getProximity
 
     public boolean resetFlow() {
 
