@@ -17,6 +17,7 @@ public class FlowVertex {
     private int localSearchLabel;
     private int iteratorAugPath;
     private int additionalEdges;
+    private int calinescu;
     private double proximity;
     private LinkedList<FlowEdge> adjacencyList;
     private LinkedList<FlowEdge> resAdjacencyList;
@@ -32,6 +33,7 @@ public class FlowVertex {
         this.iteratorAugPath = 0;
         this.additionalEdges = -1;
         this.proximity = -1.0;
+        this.calinescu = -1;
         this.deadEnd = false;
         adjacencyList = new LinkedList<>();
         resAdjacencyList = new LinkedList<>();
@@ -42,7 +44,9 @@ public class FlowVertex {
 
         if (!containsEdge(endVertex)) {
 
-            adjacencyList.add(new FlowEdge(this, endVertex, capacity));
+            FlowEdge edge = new FlowEdge(this, endVertex, capacity);
+            adjacencyList.add(edge);
+            edge.setOriginal(edge);
             return true;
 
         } //end if
@@ -50,6 +54,25 @@ public class FlowVertex {
         else {
 
             return false;
+
+        } //end else
+
+    } //end addEdge
+
+    public FlowEdge addEdge(FlowVertex endVertex, int capacity, FlowEdge original) {
+
+        if (!containsEdge(endVertex)) {
+
+            FlowEdge edge = new FlowEdge(this, endVertex, capacity);
+            adjacencyList.add(edge);
+            edge.setOriginal(original);
+            return edge;
+
+        } //end if
+
+        else {
+
+            return null;
 
         } //end else
 
@@ -299,6 +322,18 @@ public class FlowVertex {
         } //end else
 
     } //end isSaturated
+
+    public void setCalinescu(int partition) {
+
+        this.calinescu = partition;
+
+    } //end setCalinescu
+
+    public int getCalinescu() {
+
+        return this.calinescu;
+
+    } //end getCalinescu
 
     public void clearResAdjacencyList() {
 

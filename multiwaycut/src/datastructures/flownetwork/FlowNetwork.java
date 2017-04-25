@@ -324,7 +324,7 @@ public class FlowNetwork {
 
     } //end setLocalSearchLabel
 
-    public void addEdge(int vertexId1,int vertexId2, int capacity) {
+    public void addEdge(int vertexId1, int vertexId2, int capacity) {
 
         if (vertexId1 >= 0 && vertexId2 >= 0 && capacity >= 0) {
 
@@ -359,6 +359,46 @@ public class FlowNetwork {
             // failed
 
         } // end else
+
+    } //end addEdge
+
+    public FlowEdge addEdge(int vertexId1, int vertexId2, int capacity, FlowEdge edge) {
+
+        if (vertexId1 >= 0 && vertexId2 >= 0 && capacity >= 0) {
+
+            if (vertexId1 != vertexId2) {
+
+                return graph.addEdge(vertexId1, vertexId2, capacity, edge);
+
+            } //end if
+
+            else {
+
+                // must be different
+
+            } //end else
+
+        } //end if
+
+        else if (vertexId1 < 0 || vertexId2 < 0) {
+
+            // must be positive
+
+        } //end else if
+
+        else if (capacity < 0) {
+
+            // must be more than zero
+
+        } //end else if
+
+        else {
+
+            // failed
+
+        } // end else
+
+        return null;
 
     } //end addEdge
 

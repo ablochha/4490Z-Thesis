@@ -223,7 +223,7 @@ public class LocalSearch {
     /**
      * Computes a minimum multiway cut.
      */
-    public int computeMultiwayCut(FlowNetwork flowNetwork) {
+    public int computeMultiwayCut(FlowNetwork flowNetwork, double epsilon) {
 
         int labelCost;
         int newLabelCost;
@@ -238,7 +238,7 @@ public class LocalSearch {
         labelling = flowNetwork.initialLocalSearchLabel(flowNetwork.getTerminals());
         labelCost = flowNetwork.localSearchLabelCost();
 
-        StdOut.println("Local Search");
+        StdOut.println("Local Search (epsilon: " + epsilon + ")");
         //StdOut.println("The initial min cut cost is: " + labelCost);
 
         // Loop until no significant improved solutions are found
@@ -266,8 +266,9 @@ public class LocalSearch {
 
             } //end for
 
-            //if (labelCost >= bestLabelCost) {
-            if (labelCost >= (1 - (1.0/1000.0) / Math.pow(flowNetwork.getK(), 2)) * bestLabelCost) {
+            //StdOut.println("Cost to beat: " + (1 - (1.0/epsilon) / Math.pow(flowNetwork.getK(), 2)) * bestLabelCost);
+            //StdOut.println("Percent: " + (1 - (1.0/epsilon) / Math.pow(flowNetwork.getK(), 2)));
+            if (labelCost >= (1 - (1.0/epsilon) / Math.pow(flowNetwork.getK(), 2)) * bestLabelCost) {
 
                 bestLabelling = labelling;
                 bestLabelCost = labelCost;

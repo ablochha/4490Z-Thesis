@@ -89,6 +89,21 @@ public class Graph {
 
     } //end addEdge
 
+    public FlowEdge addEdge(int vertexId1, int vertexId2, int capacity, FlowEdge edge) {
+
+        this.addVertex(vertexId1);
+        this.addVertex(vertexId2);
+
+        FlowVertex startVertex = vertices.get(vertexId1);
+        FlowVertex endVertex = vertices.get(vertexId2);
+
+        FlowEdge retEdge = startVertex.addEdge(endVertex, capacity, edge);
+        boolean success = endVertex.addResEdge(startVertex);
+
+        return retEdge;
+
+    } //end addEdge
+
     public boolean removeEdge(int vertexId1, int vertexId2) {
 
         FlowVertex startVertex = vertices.get(vertexId1);

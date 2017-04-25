@@ -18,6 +18,7 @@ public class FlowEdge {
 
 	private FlowVertex startVertex;
 	private FlowVertex endVertex;
+	private FlowEdge original;
 	private int capacity;
 	private int flow;
 	private int from;
@@ -57,6 +58,13 @@ public class FlowEdge {
 		this.from = -10;
 		
 	} //end FlowEdge
+
+	public FlowEdge(FlowVertex startVertex, FlowVertex endVertex, int capacity, FlowEdge original) {
+
+		this(startVertex, endVertex, capacity);
+		this.original = original;
+
+	} //end FlowEdge
 	
 	/**
 	 * Returns the first vertex of an edge
@@ -77,6 +85,18 @@ public class FlowEdge {
 		return endVertex;
 		
 	} //end to
+
+	public void setOriginal(FlowEdge edge) {
+
+		this.original = edge;
+
+	} //end setOriginal
+
+	public FlowEdge getOriginal() {
+
+		return this.original;
+
+	} //end getOriginal
 	
 	/**
 	 * Returns the capacity of an edge
