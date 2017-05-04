@@ -17,6 +17,56 @@ import java.util.Map;
  */
 public class Calinescu {
 
+    private LinkedList<Integer> binomialPermutation(FlowNetwork flowNetwork) {
+
+        LinkedList<Integer> terminalOrder;
+        int permutation = StdRandom.uniform(1, 3);
+
+        // Regular terminal ordering
+        if (permutation == 1) {
+
+            terminalOrder = flowNetwork.getTerminals();
+
+        } //end if
+
+        // Reverse terminal ordering
+        else {
+
+            terminalOrder = new LinkedList<>();
+
+            for (int i = flowNetwork.getK() - 2; i >= 0; i--) {
+
+                terminalOrder.add(flowNetwork.getTerminals().get(i));
+
+            } //end for
+
+            terminalOrder.add(flowNetwork.getTerminals().get(flowNetwork.getK() - 1));
+
+        } //end else
+
+        return terminalOrder;
+
+    } //end binomialPermutation
+
+    private LinkedList<Integer> uniformPermutation(FlowNetwork flowNetwork) {
+
+        LinkedList<Integer> terminalOrder = new LinkedList<>();
+        LinkedList<Integer> terminals = (LinkedList<Integer>)flowNetwork.getTerminals().clone();
+
+        // Randomly pick a permutation of terminals from 1 to k-1
+        while (terminals.size() > 1) {
+
+            int pick = StdRandom.uniform(0, terminals.size() - 1);
+            terminalOrder.add(terminals.remove(pick));
+
+        } //end if
+
+        terminalOrder.add(flowNetwork.getK() - 1);
+
+        return terminalOrder;
+
+    } //end uniformPermutation
+
     private double[] newPoint(FlowNetwork flowNetwork, FlowEdge edge, Map<Integer, double[]> vertexLabels) {
 
         double[] newPoint = new double[flowNetwork.getK()];
@@ -86,6 +136,7 @@ public class Calinescu {
     } //end newPoint
 
     private void subdivide(FlowNetwork flowNetwork,
+                           LinkedList<FlowEdge> queue,
                            FlowEdge edge,
                            Map<Integer, double[]> vertexLabels) {
 
@@ -96,14 +147,15 @@ public class Calinescu {
 
         flowNetwork.removeEdge(edge.getStartVertex().id(), edge.getEndVertex().id());
 
-        checkCoordinates(flowNetwork, wv, vertexLabels);
+        queue.add(wv);
 
     } //end subdivide
 
     private void checkCoordinates(FlowNetwork flowNetwork,
-                                  FlowEdge edge,
+                                  LinkedList<FlowEdge> queue,
                                   Map<Integer, double[]> vertexLabels) {
 
+        FlowEdge edge = queue.removeFirst();
         int count = 0;
 
         // Check the coordinates
@@ -121,7 +173,7 @@ public class Calinescu {
         // Subdivision is required
         if (count > 2) {
 
-            subdivide(flowNetwork, edge, vertexLabels);
+            subdivide(flowNetwork, queue, edge, vertexLabels);
 
         } //end if
 
@@ -130,14 +182,11 @@ public class Calinescu {
     private void subdivision(FlowNetwork flowNetwork,
                              Map<Integer, double[]> vertexLabels) {
 
-        LinkedList<FlowEdge> edges = flowNetwork.getEdges();
-        ListIterator<FlowEdge> it = edges.listIterator();
+        LinkedList<FlowEdge> queue = flowNetwork.getEdges();
 
-        // Check edges to see that vectors differ by at most 2 coordinates
-        while (it.hasNext()) {
+        while (queue.size() > 0) {
 
-            FlowEdge edge = it.next();
-            checkCoordinates(flowNetwork, edge, vertexLabels);
+            checkCoordinates(flowNetwork, queue, vertexLabels);
 
         } //end while
 
@@ -170,14 +219,16 @@ public class Calinescu {
     } //end outputCoordinates
 
     private int round(FlowNetwork flowNetwork,
-                      Map<Integer, LinkedList<Integer>> partitions,
                       Map<Integer, double[]> vertexLabels) {
 
+        Map<Integer, LinkedList<Integer>> partitions = new LinkedHashMap<>();
         Map<Integer, FlowVertex> vertices = flowNetwork.getVertices();
         LinkedList<Integer> terminalOrder;
 
-        int permutation = StdRandom.uniform(1, 3);
         double rand = StdRandom.uniform(0.0, 1.0);
+
+        terminalOrder = binomialPermutation(flowNetwork);
+        //terminalOrder = uniformPermutation();
 
         // Initialize the partition list
         for (int i = 0; i < flowNetwork.getK(); i++) {
@@ -185,28 +236,6 @@ public class Calinescu {
             partitions.put(i, new LinkedList<>());
 
         } //end for
-
-        // Regular terminal ordering
-        if (permutation == 1) {
-
-            terminalOrder = flowNetwork.getTerminals();
-
-        } //end if
-
-        // Reverse terminal ordering
-        else {
-
-            terminalOrder = new LinkedList<>();
-
-            for (int i = flowNetwork.getK() - 2; i >= 0; i--) {
-
-                terminalOrder.add(flowNetwork.getTerminals().get(i));
-
-            } //end for
-
-            terminalOrder.add(flowNetwork.getTerminals().get(flowNetwork.getK() - 1));
-
-        } //end else
 
         // Set all the vertices to the kth list
         for (Map.Entry<Integer, double[]> entry : vertexLabels.entrySet()) {
@@ -249,28 +278,7 @@ public class Calinescu {
 
         } //end for
 
-        ListIterator<FlowEdge> it = flowNetwork.getEdges().listIterator();
-        LinkedList<FlowEdge> multiwayCut = new LinkedList<>();
-
-        int multiwayCutCost = 0;
-
-        while (it.hasNext()) {
-
-            FlowEdge edge = it.next();
-
-            if (edge.getStartVertex().getCalinescu() != edge.getEndVertex().getCalinescu()
-                    && !multiwayCut.contains(edge)
-                    && !multiwayCut.contains(edge.getOriginal())) {
-
-                multiwayCut.add(edge.getOriginal());
-                multiwayCutCost += edge.getOriginal().getCapacity();
-
-            } //end if
-
-        } //end while
-
-        StdOut.println("The weight of the multiway cut: " + multiwayCutCost);
-        return multiwayCutCost;
+        return flowNetwork.calinescuCost();
 
     } //end round
 
@@ -280,7 +288,6 @@ public class Calinescu {
     public int computeMultiwayCut(FlowNetwork flowNetwork, MultiwayCutSolver solver) {
 
         Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
-        Map<Integer, LinkedList<Integer>> partitions = new LinkedHashMap<>();
         double[] edgeLabelSums = new double[flowNetwork.getNumEdges()];
 
         StdOut.println("Calinescu");
@@ -289,7 +296,7 @@ public class Calinescu {
         //outputCoordinates(flowNetwork, vertexLabels, edgeLabelSums);
         subdivision(flowNetwork, vertexLabels);
 
-        return round(flowNetwork, partitions, vertexLabels);
+        return round(flowNetwork, vertexLabels);
 
     } //end computeMultiwayCut
 

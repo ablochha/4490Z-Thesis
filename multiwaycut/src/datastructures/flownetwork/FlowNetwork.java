@@ -422,7 +422,6 @@ public class FlowNetwork {
 
         setSource(s);
         setSink(t);
-        //StdOut.println("GoldBerg-Tarjan(n^3) Source:" + getSource() + ", Sink: " + getSink());
 
         if (this.getSource() >= 0 && this.getSink() >= 0) {
 
@@ -433,18 +432,13 @@ public class FlowNetwork {
             graph.initializeLabels(sourceId);
 
             int queueLength = graph.initialPush(sourceId, sinkId);
-int debug = 0;
+
             while (queueLength > 0) {
 
-                //if (debug % 50000 == 0)
-                    //StdOut.println("THIS IS MADNESS: " + queueLength);
                 queueLength = graph.dischargeQueue();
-                //debug++;
+
             } //end while
-            //System.out.println("Just about to cut the graph. Press \"ENTER\" to continue...");
-            //Scanner scanner = new Scanner(System.in);
-            //scanner.nextLine();
-            //test();
+
             return graph.minCut(sinkId, sourceId);
 
         } //end if
@@ -467,24 +461,15 @@ int debug = 0;
 
     public int localSearchLabelCost() {
 
-        /*int [] labelCounts = new int[k];
-        Arrays.fill(labelCounts, 0);
-
-        for (Map.Entry<Integer, FlowVertex> entry : graph.getVertices().entrySet()) {
-
-            labelCounts[entry.getValue().getLocalSearchLabel()]++;
-
-        } //end for
-
-        for (int i = 0; i < k; i++) {
-
-            StdOut.println("Label " + i + " has " + labelCounts[i] + "vertices");
-
-        } //end for*/
-
         return graph.localSearchLabelCost();
 
     } //end localSearchLabelCost
+
+    public int calinescuCost() {
+
+        return graph.calinescuCost(getEdges());
+
+    } //end calinescuCost
 
     public LinkedList<FlowEdge> localSearchMinCut() {
 
@@ -572,11 +557,5 @@ int debug = 0;
         return proximities;
 
     } //end getProximityList
-
-    public void test() {
-
-        graph.test();
-
-    } //end test
 
 } //end FlowNetwork

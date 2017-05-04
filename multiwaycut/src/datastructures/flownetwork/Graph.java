@@ -285,6 +285,33 @@ public class Graph {
 
     } //end localSearchMinCut
 
+    public int calinescuCost(LinkedList<FlowEdge> edges) {
+
+        ListIterator<FlowEdge> it = edges.listIterator();
+        LinkedList<FlowEdge> multiwayCut = new LinkedList<>();
+
+        int multiwayCutCost = 0;
+
+        while (it.hasNext()) {
+
+            FlowEdge edge = it.next();
+
+            if (edge.getStartVertex().getCalinescu() != edge.getEndVertex().getCalinescu()
+                    && !multiwayCut.contains(edge)
+                    && !multiwayCut.contains(edge.getOriginal())) {
+
+                multiwayCut.add(edge.getOriginal());
+                multiwayCutCost += edge.getOriginal().getCapacity();
+
+            } //end if
+
+        } //end while
+
+        StdOut.println("The weight of the multiway cut: " + multiwayCutCost);
+        return multiwayCutCost;
+
+    } //end calinescuCost
+
     public void relabel(Map<Integer, Integer> labelling) {
 
         for (Map.Entry<Integer, Integer> entry : labelling.entrySet()) {
