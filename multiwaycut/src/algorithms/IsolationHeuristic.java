@@ -18,7 +18,7 @@ import java.util.ListIterator;
  * of minimum cuts to isolate specific vertices one at a time to solve
  * the multiway cut problem. It computes k-1 cuts, discarding the heaviest cut.
  */
-public class IsolationHeuristic {
+public class IsolationHeuristic implements MultiwayCutStrategy {
 
     /**
      * Adds an extra edge with infinity capacity from every vertex to the sink.
@@ -184,6 +184,7 @@ public class IsolationHeuristic {
     /**
      * Computes a minimum multiway cut.
      */
+    @Override
     public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
         // The minimum cuts for each iteration

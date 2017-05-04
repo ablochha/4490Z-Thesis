@@ -15,7 +15,9 @@ import java.util.Map;
 /**
  * Created by Bloch-Hansen on 2017-04-24.
  */
-public class Calinescu {
+public class Calinescu implements MultiwayCutStrategy {
+
+    private MultiwayCutStrategy solver;
 
     private LinkedList<Integer> binomialPermutation(FlowNetwork flowNetwork) {
 
@@ -282,17 +284,24 @@ public class Calinescu {
 
     } //end round
 
+    public void setSolver(MultiwayCutStrategy solver) {
+
+        this.solver = solver;
+
+    } //end setSolver
+
     /**
      * Computes a minimum multiway cut.
      */
-    public int computeMultiwayCut(FlowNetwork flowNetwork, MultiwayCutSolver solver) {
+    @Override
+    public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
         Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
         double[] edgeLabelSums = new double[flowNetwork.getNumEdges()];
 
         StdOut.println("Calinescu");
 
-        solver.computeLinearMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
+        solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
         //outputCoordinates(flowNetwork, vertexLabels, edgeLabelSums);
         subdivision(flowNetwork, vertexLabels);
 

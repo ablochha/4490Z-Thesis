@@ -1,5 +1,6 @@
 package cplex;
 
+import algorithms.MultiwayCutStrategy;
 import datastructures.flownetwork.FlowEdge;
 import datastructures.flownetwork.FlowNetwork;
 import datastructures.flownetwork.FlowVertex;
@@ -14,7 +15,7 @@ import java.util.Map;
 /**
  * Created by Bloch-Hansen on 2017-02-15.
  */
-public class MultiwayCutSolver {
+public class MultiwayCutSolver implements MultiwayCutStrategy{
 
     private void populateByRowInteger(IloMPModeler model,
                                     IloNumVar[] edgeLabelSums,
@@ -161,7 +162,8 @@ public class MultiwayCutSolver {
     /**
      * Computes a minimum multiway cut.
      */
-    public int computeIntegerMultiwayCut(FlowNetwork flowNetwork) {
+    @Override
+    public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
         int optimal = 0;
 
@@ -216,9 +218,10 @@ public class MultiwayCutSolver {
     /**
      * Computes a minimum multiway cut.
      */
-    public int computeLinearMultiwayCut(FlowNetwork flowNetwork,
-                                        double[] edgesRelaxed,
-                                        Map<Integer, double[]> verticesRelaxed) {
+    @Override
+    public int computeMultiwayCut(FlowNetwork flowNetwork,
+                                  double[] edgesRelaxed,
+                                  Map<Integer, double[]> verticesRelaxed) {
 
         int optimal = 0;
 

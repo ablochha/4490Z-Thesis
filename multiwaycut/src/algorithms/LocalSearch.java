@@ -17,9 +17,11 @@ import java.util.Map;
  * of minimum cuts to isolate specific vertices one at a time to solve
  * the multiway cut problem. It computes k-1 cuts, discarding the heaviest cut.
  */
-public class LocalSearch {
+public class LocalSearch implements MultiwayCutStrategy {
 
     public int iterations = 0;
+
+    private double epsilon = 0.0;
 
     private Map<Integer, Integer> computeMinimumCostRelabel(FlowNetwork flowNetwork,
                                                            LinkedList<Integer> terminals,
@@ -220,10 +222,17 @@ public class LocalSearch {
 
     } //end outputMultiwayCut
 
+    public void setEpsilon(double epsilon){
+
+        this.epsilon = epsilon;
+
+    } //end setEpsilon
+
     /**
      * Computes a minimum multiway cut.
      */
-    public int computeMultiwayCut(FlowNetwork flowNetwork, double epsilon) {
+    @Override
+    public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
         int labelCost;
         int newLabelCost;

@@ -15,7 +15,9 @@ import java.util.Map;
 /**
  * Created by Bloch-Hansen on 2017-04-25.
  */
-public class Buchbinder {
+public class Buchbinder implements MultiwayCutStrategy {
+
+    private MultiwayCutStrategy solver;
 
     private LinkedList<Integer> uniformPermutation(FlowNetwork flowNetwork) {
 
@@ -287,7 +289,14 @@ public class Buchbinder {
 
     } //end round
 
-    public int computeMultiwayCut(FlowNetwork flowNetwork, MultiwayCutSolver solver) {
+    public void setSolver(MultiwayCutStrategy solver) {
+
+        this.solver = solver;
+
+    } //end setSolver
+
+    @Override
+    public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
         Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
         Map<Integer, double[]> sortedVertexLabels = new LinkedHashMap<>();
@@ -295,7 +304,7 @@ public class Buchbinder {
 
         StdOut.println("Buchbinder");
 
-        solver.computeLinearMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
+        solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
         subdivision(flowNetwork, vertexLabels);
         //sortedVertexLabels = sort(flowNetwork, vertexLabels);
         //outputCoordinates(flowNetwork, vertexLabels, edgeLabelSums);
