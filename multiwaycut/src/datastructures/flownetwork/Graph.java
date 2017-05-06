@@ -404,7 +404,7 @@ public class Graph {
 
         while (headVertex.getExcess() > 0 && !headVertex.labelIncreased()) {
             //StdOut.println("HEAD VERTEX: " + headVertex.vertexToString());
-            FlowVertex newVertex = headVertex.pushRelabel();
+            FlowVertex newVertex = headVertex.pushRelabel(startVertex.id());
 
             if (newVertex != null && newVertex != startVertex && newVertex != endVertex) {
                 //StdOut.println("Added to queue: " + newVertex.vertexToString());
@@ -480,10 +480,14 @@ public class Graph {
 
                 FlowVertex end = edge.getEndVertex();
 
-                if (edge.getCapacity() - edge.getFlow() > 0 && !marked.get(end.id()).booleanValue()) {
+                if ((edge.getCapacity() - edge.getFlow() > 0 && !marked.get(end.id()).booleanValue())
+                        || (edge.getCapacity() - edge.getFlow() == 0 && !marked.get(end.id()).booleanValue()
+                        && edge.getCapacity() > 0
+                        && edge.getFrom() != start.id())) {
 
                     marked.put(end.id(), true);
                     bfs.add(end);
+                    //StdOut.println("MARKED: " + end.vertexToString());
 
                 } //end if
 
@@ -493,10 +497,14 @@ public class Graph {
 
                 FlowVertex end = edge.getStartVertex();
 
-                if (edge.getCapacity() - edge.getFlow() > 0 && !marked.get(end.id()).booleanValue()) {
+                if ((edge.getCapacity() - edge.getFlow() > 0 && !marked.get(end.id()).booleanValue())
+                        || (edge.getCapacity() - edge.getFlow() == 0 && !marked.get(end.id()).booleanValue()
+                        && edge.getCapacity() > 0
+                        && edge.getFrom() != start.id())) {
 
                     marked.put(end.id(), true);
                     bfs.add(end);
+                    //StdOut.println("MARKED: " + end.vertexToString());
 
                 } //end if
 
@@ -510,7 +518,7 @@ public class Graph {
 
                 if ((entry.getValue() == edge.getStartVertex()) && (marked.get(edge.getStartVertex().id())) &&
                         (!marked.get(edge.getEndVertex().id()))) {
-
+//StdOut.println("ADDED EDGE: " + edge.edgeToString());
                     minCut.add(edge);
 
                 } //end if
@@ -521,7 +529,7 @@ public class Graph {
 
                 if ((entry.getValue() == edge.getEndVertex()) && (marked.get(edge.getEndVertex().id())) &&
                         (!marked.get(edge.getStartVertex().id()))) {
-
+                    //StdOut.println("ADDED EDGE: " + edge.edgeToString());
                     minCut.add(edge);
 
                 } //end if

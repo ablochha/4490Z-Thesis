@@ -528,7 +528,7 @@ public class FlowVertex {
 
     } //end resetEdge
 
-    public void relabelVertex() {
+    public void relabelVertex(int source) {
 
         int newLabel = Integer.MAX_VALUE;
         ListIterator<FlowEdge> it = adjacencyList.listIterator();
@@ -539,8 +539,10 @@ public class FlowVertex {
             FlowEdge nextEdge = it.next();
 
             // Residual capacity, can still push flow forwards
-            if ((nextEdge.getFrom() == this.id() || nextEdge.getFrom() == -10) && nextEdge.getEndVertex().getLabel() + 1 < newLabel &&
-                    nextEdge.getCapacity() - nextEdge.getFlow() > 0) {
+            if ((nextEdge.getFrom() == this.id() || nextEdge.getFrom() == -10)
+                    && nextEdge.getEndVertex().getLabel() + 1 < newLabel
+                    && nextEdge.getCapacity() - nextEdge.getFlow() > 0
+                    && nextEdge.getEndVertex().id() != source) {
 
                 newLabel = nextEdge.getEndVertex().getLabel() + 1;
 
@@ -564,8 +566,10 @@ public class FlowVertex {
             FlowEdge nextEdge = it.next();
 
             // Residual capacity, can still push flow forwards
-            if ((nextEdge.getFrom() == this.id() || nextEdge.getFrom() == -10) && nextEdge.getStartVertex().getLabel() + 1 < newLabel &&
-                    nextEdge.getCapacity() - nextEdge.getFlow() > 0) {
+            if ((nextEdge.getFrom() == this.id() || nextEdge.getFrom() == -10)
+                    && nextEdge.getStartVertex().getLabel() + 1 < newLabel
+                    && nextEdge.getCapacity() - nextEdge.getFlow() > 0
+                    && nextEdge.getStartVertex().id() != source) {
 
                 newLabel = nextEdge.getStartVertex().getLabel() + 1;
 
@@ -586,7 +590,7 @@ public class FlowVertex {
 
     } //end relabelVertex
 
-    public FlowVertex pushRelabel() {
+    public FlowVertex pushRelabel(int source) {
 
         FlowVertex newActiveVertex;
         FlowEdge pushEdge = this.getNextEdge();
@@ -594,7 +598,7 @@ public class FlowVertex {
         // There is not another edge to check
         if (pushEdge == null) {
 
-            this.relabelVertex();
+            this.relabelVertex(source);
             this.setDead(false);
             //this.setBacktrack(false);
             newActiveVertex = null;
@@ -607,8 +611,10 @@ public class FlowVertex {
             // This is a normal edge
             if (this == pushEdge.getStartVertex()) {
 
-                // The edge has no flow but positive capacity
-                if (pushEdge.getStartVertex().getLabel() == pushEdge.getEndVertex().getLabel() + 1 && 0 == pushEdge.getFlow() && pushEdge.getCapacity() > 0) {
+                // The edge has no flow but positive capacity and doesn't lead to the source
+                if (pushEdge.getStartVertex().getLabel() == pushEdge.getEndVertex().getLabel() + 1
+                        && 0 == pushEdge.getFlow() && pushEdge.getCapacity() > 0
+                        && pushEdge.getEndVertex().id() != source) {
 
                     //StdOut.println("Start Vertex: " + pushEdge.getStartVertex().vertexToString());
                     //StdOut.println("End Vertex: " + pushEdge.getEndVertex().vertexToString());
@@ -672,7 +678,7 @@ public class FlowVertex {
                 // This is the last edge, and no pushing operations are available
                 else if (this.isDead()) {
 
-                    this.relabelVertex();
+                    this.relabelVertex(source);
                     this.setDead(false);
                     newActiveVertex = null;
 
@@ -691,7 +697,10 @@ public class FlowVertex {
             else {
 
                 // The next edge is a residual edge, and it currently has no flow but positive capacity
-                if (pushEdge.getEndVertex().getLabel() == pushEdge.getStartVertex().getLabel() + 1 && 0 == pushEdge.getFlow() && pushEdge.getCapacity() > 0) {
+                if (pushEdge.getEndVertex().getLabel() == pushEdge.getStartVertex().getLabel() + 1
+                        && 0 == pushEdge.getFlow() && pushEdge.getCapacity() > 0
+                        && pushEdge.getStartVertex().id() != source) {
+
                     //StdOut.println("Start Vertex: " + pushEdge.getEndVertex().vertexToString());
                     //StdOut.println("End Vertex: " + pushEdge.getStartVertex().vertexToString());
                     newActiveVertex = pushEdge.pushResFlowForward();
@@ -754,7 +763,7 @@ public class FlowVertex {
                 // This is the last edge, and no pushing operations are available
                 else if (this.isDead()) {
 
-                    this.relabelVertex();
+                    this.relabelVertex(source);
                     this.setDead(false);
                     newActiveVertex = null;
 

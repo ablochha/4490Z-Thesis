@@ -423,6 +423,8 @@ public class FlowNetwork {
         setSource(s);
         setSink(t);
 
+        //StdOut.println("Source: " + s + ", Sink: " + t);
+
         if (this.getSource() >= 0 && this.getSink() >= 0) {
 
             graph.resetFlow();
@@ -557,5 +559,11 @@ public class FlowNetwork {
         return proximities;
 
     } //end getProximityList
+
+    public void test() {
+
+        graph.test();
+
+    } //end test
 
 } //end FlowNetwork
