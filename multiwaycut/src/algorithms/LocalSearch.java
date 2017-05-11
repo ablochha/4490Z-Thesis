@@ -19,6 +19,8 @@ import java.util.Map;
  */
 public class LocalSearch implements MultiwayCutStrategy {
 
+    private long time;
+
     public int iterations = 0;
 
     private double epsilon = 0.0;
@@ -228,6 +230,12 @@ public class LocalSearch implements MultiwayCutStrategy {
 
     } //end setEpsilon
 
+    public long getTime() {
+
+        return time;
+
+    } //end getTime
+
     /**
      * Computes a minimum multiway cut.
      */
@@ -243,6 +251,8 @@ public class LocalSearch implements MultiwayCutStrategy {
         Map<Integer, Integer> bestLabelling;
 
         LinkedList<FlowEdge> multiwayCut;
+
+        long start = System.nanoTime();
 
         labelling = flowNetwork.initialLocalSearchLabel(flowNetwork.getTerminals());
         labelCost = flowNetwork.localSearchLabelCost();
@@ -290,6 +300,8 @@ public class LocalSearch implements MultiwayCutStrategy {
 
         multiwayCut = flowNetwork.localSearchMinCut();
         outputMultiwayCut(multiwayCut);
+
+        time = System.nanoTime() - start;
 
         return bestLabelCost;
 

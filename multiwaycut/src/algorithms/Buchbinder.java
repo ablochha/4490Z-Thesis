@@ -1,16 +1,10 @@
 package algorithms;
 
-import cplex.MultiwayCutSolver;
-import datastructures.flownetwork.FlowEdge;
 import datastructures.flownetwork.FlowNetwork;
-import datastructures.flownetwork.FlowVertex;
+import library.Matrix;
 import library.StdOut;
-import library.StdRandom;
-
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.ListIterator;
-import java.util.Map;
+import utility.Pair;
+import java.util.*;
 
 /**
  * Created by Bloch-Hansen on 2017-04-25.
@@ -19,273 +13,145 @@ public class Buchbinder implements MultiwayCutStrategy {
 
     private MultiwayCutStrategy solver;
 
-    private LinkedList<Integer> uniformPermutation(FlowNetwork flowNetwork) {
+    private long time;
 
-        LinkedList<Integer> terminalOrder = new LinkedList<>();
-        LinkedList<Integer> terminals = (LinkedList<Integer>)flowNetwork.getTerminals().clone();
+    private double[][] createA(FlowNetwork flowNetwork) {
 
-        // Randomly pick a permutation of terminals from 1 to k-1
-        while (terminals.size() > 1) {
-
-            int pick = StdRandom.uniform(0, terminals.size() - 1);
-            terminalOrder.add(terminals.remove(pick));
-
-        } //end if
-
-        terminalOrder.add(flowNetwork.getK() - 1);
-
-        return terminalOrder;
-
-    } //end uniformPermutation
-
-    private double[] newPoint(FlowNetwork flowNetwork, FlowEdge edge, Map<Integer, double[]> vertexLabels) {
-
-        double[] newPoint = new double[flowNetwork.getK()];
-
-        int terminal1 = -1;
-        int terminal2 = -1;
-
-        double difference1 = 0.0;
-        double difference2 = 0.0;
-
-        double alpha = 0.0;
-
-        // Find two coordinates to change
-        for (int i = 0; i < flowNetwork.getK(); i++) {
-
-            // xu < xv
-            if (vertexLabels.get(edge.getStartVertex().id())[i] < vertexLabels.get(edge.getEndVertex().id())[i] && terminal1 < 0) {
-
-                terminal1 = i;
-                difference1 = vertexLabels.get(edge.getEndVertex().id())[i] - vertexLabels.get(edge.getStartVertex().id())[i];
-
-            } //end if
-
-            // xu > xv
-            if (vertexLabels.get(edge.getStartVertex().id())[i] > vertexLabels.get(edge.getEndVertex().id())[i] && terminal2 < 0) {
-
-                terminal2 = i;
-                difference2 = vertexLabels.get(edge.getStartVertex().id())[i] - vertexLabels.get(edge.getEndVertex().id())[i];
-
-            } //end if
-
-        } //end for
-
-        // Alpha is the minimum of the differences
-        if (difference1 < difference2) {
-
-            alpha = difference1;
-
-        } //end if
-
-        else {
-
-            alpha = difference2;
-
-        } //end else
+        double[][] A = new double[flowNetwork.getK()][flowNetwork.getK()];
 
         for (int i = 0; i < flowNetwork.getK(); i++) {
 
-            newPoint[i] = vertexLabels.get(edge.getStartVertex().id())[i];
-
-            if (i == terminal1) {
-
-                newPoint[i] = vertexLabels.get(edge.getStartVertex().id())[i] + alpha;
-
-            } //end if
-
-            if (i == terminal2) {
-
-                newPoint[i] = vertexLabels.get(edge.getStartVertex().id())[i] - alpha;
-
-            } //end if
+            A[0][i] = 5.0 / 27.0;
+            A[i][0] = 5.0 / 27.0;
 
         } //end for
 
-        return newPoint;
+        for (int i = 1; i < flowNetwork.getK(); i++) {
 
-    } //end newPoint
-
-    private void subdivide(FlowNetwork flowNetwork,
-                           LinkedList<FlowEdge> queue,
-                           FlowEdge edge,
-                           Map<Integer, double[]> vertexLabels) {
-
-        vertexLabels.put(flowNetwork.getNumVertices(), newPoint(flowNetwork, edge, vertexLabels));
-
-        FlowEdge uw = flowNetwork.addEdge(edge.getStartVertex().id(), flowNetwork.getNumVertices(), edge.getCapacity(), edge.getOriginal());
-        FlowEdge wv = flowNetwork.addEdge(flowNetwork.getNumVertices() - 1, edge.getEndVertex().id(), edge.getCapacity(), edge.getOriginal());
-
-        flowNetwork.removeEdge(edge.getStartVertex().id(), edge.getEndVertex().id());
-
-        queue.add(wv);
-
-    } //end subdivide
-
-    private void checkCoordinates(FlowNetwork flowNetwork,
-                                  LinkedList<FlowEdge> queue,
-                                  Map<Integer, double[]> vertexLabels) {
-
-        FlowEdge edge = queue.removeFirst();
-        int count = 0;
-
-        // Check the coordinates
-        for (int i = 0; i < flowNetwork.getK(); i++) {
-
-            // The ith coordinate differs
-            if (vertexLabels.get(edge.getStartVertex().id())[i] != vertexLabels.get(edge.getEndVertex().id())[i]) {
-
-                count++;
-
-            } //end if
+            A[1][i] = 5.0 / 108.0;
+            A[i][1] = 5.0 / 108.0;
 
         } //end for
 
-        // Subdivision is required
-        if (count > 2) {
+        for (int i = 2; i < flowNetwork.getK(); i++) {
 
-            subdivide(flowNetwork, queue, edge, vertexLabels);
+            A[2][i] = 5.0 / 108.0;
+            A[i][2] = 5.0 / 108.0;
+
+        } //end for
+
+        if (flowNetwork.getK() >= 1) {
+
+            A[0][0] = 1.0;
 
         } //end if
 
-    } //end checkCoordinates
+        if (flowNetwork.getK() >= 2) {
 
-    private void subdivision(FlowNetwork flowNetwork,
-                             Map<Integer, double[]> vertexLabels) {
+            A[1][1] = 1.0 / 9.0;
 
-        LinkedList<FlowEdge> queue = flowNetwork.getEdges();
+        } //end if
 
-        while (queue.size() > 0) {
+        if (flowNetwork.getK() >= 3) {
 
-            checkCoordinates(flowNetwork, queue, vertexLabels);
+            A[2][2] = 1.0 / 9.0;
 
-        } //end while
+        } //end if
 
-    } //end subdivision
+        if (flowNetwork.getK() >= 4) {
 
-    private Map<Integer, double[]> sort(FlowNetwork flowNetwork,
-                                        Map<Integer, double[]> vertexLabels) {
+            A[3][3] = (5.0 / 18.0) * -1.0;
 
-        // For every edge, uv's coordinates must be sorted in non-increasing order
+        } //end if
+
+        return A;
+
+    } //end createA
+
+    private Map<Integer, Pair[]> sort(Map<Integer, double[]> vertexLabels) {
+
+        Map<Integer, Pair[]> sorted = new LinkedHashMap<>();
+
+        // For every vertex, the coordinates must be sorted in non-increasing order
         for (Map.Entry<Integer, double[]> entry : vertexLabels.entrySet()) {
 
+            Pair[] vector = new Pair[entry.getValue().length];
 
+            // Store the original coordinate positions
+            for (int i = 0; i < entry.getValue().length; i++) {
+
+                vector[i] = new Pair(i, entry.getValue()[i]);
+
+            } //end for
+
+            Arrays.sort(vector);
+            sorted.put(entry.getKey(), vector);
 
         } //end for
 
-        return null;
+        return sorted;
+
+    } //end sort
+
+    private Map<Integer, double[]> transform(FlowNetwork flowNetwork, Map<Integer, double[]> vertexLabels) {
+
+        Map<Integer, double[]> transform = new LinkedHashMap<>();
+        Map<Integer, Pair[]> sorted = sort(vertexLabels);
+        double[][] A = createA(flowNetwork);
+
+        // For every vector, create k new vectors
+        for (Map.Entry<Integer, Pair[]> entry : sorted.entrySet()) {
+
+            double[] transformedVector = new double[entry.getValue().length];
+
+            // Create k new vectors
+            for (int i = 0; i < entry.getValue().length; i++) {
+
+                double[][] array = new double[1][entry.getValue().length];
+
+                // The first j coordinates are all coordinate i
+                for (int j = 0; j <= i; j++) {
+
+                    array[0][j] = entry.getValue()[i].value;
+
+                } //end for
+
+                // Coordinates j+1 to k are coordinates j
+                for (int j = i+1; j < entry.getValue().length; j++) {
+
+                    array[0][j] = entry.getValue()[j].value;
+
+                } //end for
+
+                double[][] temp = Matrix.multiply(array, A);
+                transformedVector[entry.getValue()[i].index] = Matrix.multiply(A, Matrix.transpose(array))[0][0];
+
+            } //end for
+
+            double test = 0.0;
+            for (int x = 0; x < entry.getValue().length; x++) {
+
+                test += transformedVector[x];
+
+            } //end for
+            StdOut.println("THE COST OF THE TRANSFORMED VECTOR IS: " + test);
+            transform.put(entry.getKey(), transformedVector);
+
+        } //end for
+
+        return transform;
 
     } //end sort
 
     private int round(FlowNetwork flowNetwork,
                       Map<Integer, double[]> vertexLabels) {
 
-        Map<Integer, LinkedList<Integer>> partitions = new LinkedHashMap<>();
-        Map<Integer, FlowVertex> vertices = flowNetwork.getVertices();
-        LinkedList<Integer> terminalOrder;
+        int cost1 = CalinescuUtility.roundBuchbinder(new FlowNetwork(flowNetwork), vertexLabels);
+        vertexLabels = transform(flowNetwork, vertexLabels);
+        int cost2 = CalinescuUtility.roundCalinescu(new FlowNetwork(flowNetwork), vertexLabels, CalinescuUtility.uniformPermutation(flowNetwork));
 
-        double alg = StdRandom.uniform(0, 229);
-
-        // Initialize the partition list
-        for (int i = 0; i < flowNetwork.getK(); i++) {
-
-            partitions.put(i, new LinkedList<>());
-
-        } //end for
-
-        // Exponential clocks on the simplex
-        if (alg < 229) {
-
-            double clocks[] = new double[flowNetwork.getK()];
-
-            // Generate the exponential random variables
-            for (int i = 0; i < flowNetwork.getK(); i++) {
-
-                clocks[i] = StdRandom.exp(1);
-
-            } //end for
-
-            // Scale each vertex using the exponential clocks
-            for (Map.Entry<Integer, double[]> entry : vertexLabels.entrySet()) {
-
-                double bestClock = Double.MAX_VALUE;
-                double clock;
-                int index = -1;
-
-                // Find the smallest exponential clock
-                for (int i = 0; i < flowNetwork.getK(); i++) {
-
-                    clock = clocks[i] / entry.getValue()[i];
-
-                    // Check if this clock is the winner
-                    if (clock < bestClock) {
-
-                        bestClock = clock;
-                        index = i;
-
-                    } //end if
-
-                } //end for
-
-                vertices.get(entry.getKey()).setCalinescu(index);
-
-            } //end for
-
-            return flowNetwork.calinescuCost();
-
-        } //end if
-
-        // Calinescu on the transformed simplex
-        else {
-
-            double rand = StdRandom.uniform(0.0, 1.0);
-
-            terminalOrder = uniformPermutation(flowNetwork);
-
-            // Set all the vertices to the kth list
-            for (Map.Entry<Integer, double[]> entry : vertexLabels.entrySet()) {
-
-                partitions.get(flowNetwork.getK() - 1).add(entry.getKey());
-                vertices.get(entry.getKey()).setCalinescu(flowNetwork.getK() - 1);
-
-            } //end for
-
-            // Group vertices within a sphere of radius rand with a terminal
-            for (int i = 0; i < flowNetwork.getK() - 1; i++) {
-
-                ListIterator<Integer> it = partitions.get(flowNetwork.getK() - 1).listIterator();
-
-                // Loop through all of the vertices remaining in the kth list
-                while (it.hasNext()) {
-
-                    int vertex = it.next();
-                    double distance = 0.0;
-
-                    // Calculate the distance from the terminal to the vertex
-                    for (int j = 0; j < flowNetwork.getK(); j++) {
-
-                        distance += Math.abs(vertexLabels.get(terminalOrder.get(i))[j] - vertexLabels.get(vertex)[j]);
-
-                    } //end for
-
-                    distance /= 2.0;
-
-                    // The distance is within the sphere of radius rand
-                    if (distance <= rand) {
-
-                        it.remove();
-                        partitions.get(i).add(vertex);
-                        vertices.get(vertex).setCalinescu(i);
-
-                    } //end if
-
-                } //end while
-
-            } //end for
-
-            return flowNetwork.calinescuCost();
-
-        } //end else
+        StdOut.println("COST1: " + cost1 + ", COST2: " + cost2);
+        return Math.min(cost1, cost2);
 
     } //end round
 
@@ -295,21 +161,31 @@ public class Buchbinder implements MultiwayCutStrategy {
 
     } //end setSolver
 
+    public long getTime() {
+
+        return time;
+
+    } //end getTime
+
     @Override
     public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
         Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
-        Map<Integer, double[]> sortedVertexLabels = new LinkedHashMap<>();
         double[] edgeLabelSums = new double[flowNetwork.getNumEdges()];
 
         StdOut.println("Buchbinder");
 
         solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
-        subdivision(flowNetwork, vertexLabels);
-        //sortedVertexLabels = sort(flowNetwork, vertexLabels);
-        //outputCoordinates(flowNetwork, vertexLabels, edgeLabelSums);
 
-        return round(flowNetwork, vertexLabels);
+        long start = System.nanoTime();
+        CalinescuUtility.subdivision(flowNetwork, vertexLabels);
+        //outputCoordinates(flowNetwork, vertexLabels, edgeLabelSums);
+        int cost = round(flowNetwork, vertexLabels);
+        time = System.nanoTime() - start;
+
+        StdOut.println("The weight of the multiway cut: " + cost);
+
+        return cost;
 
     } //end computeMultiwayCut
 

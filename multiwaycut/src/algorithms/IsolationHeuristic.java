@@ -20,6 +20,8 @@ import java.util.ListIterator;
  */
 public class IsolationHeuristic implements MultiwayCutStrategy {
 
+    private long time;
+
     /**
      * Adds an extra edge with infinity capacity from every vertex to the sink.
      * @param flowNetwork the flow network
@@ -181,6 +183,12 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
 
     } //end outputMultiwayCut
 
+    public long getTime() {
+
+        return time;
+
+    } //end getTime
+
     /**
      * Computes a minimum multiway cut.
      */
@@ -196,12 +204,16 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
 
         StdOut.println("Isolation Heuristic");
 
+        long start = System.nanoTime();
         flowNetwork.addVertex(flowNetwork.getMaxVertexId() + 1);
         initializeInfinityEdges(flowNetwork);
         computeMinimumCut(flowNetwork, allMinCut, cutWeights);
         heavyIndex = computeHeaviestCut(flowNetwork.getK(), cutWeights);
         unionCuts(flowNetwork.getK(), heavyIndex, allMinCut, multiwayCut);
-        return outputMultiwayCut(multiwayCut);
+        int cost = outputMultiwayCut(multiwayCut);
+        time = System.nanoTime() - start;
+
+        return cost;
 
     } //end computeMultiwayCut
 

@@ -1,8 +1,6 @@
 package algorithms;
 
-import cplex.MultiwayCutSolver;
 import datastructures.flownetwork.FlowNetwork;
-
 import java.util.Map;
 
 /**
@@ -11,18 +9,6 @@ import java.util.Map;
 public interface MultiwayCutStrategy {
 
     default int computeMultiwayCut(FlowNetwork flowNetwork) {
-
-        return 0;
-
-    } //end computeMultiwayCut
-
-    default int computeMultiwayCut(FlowNetwork flowNetwork, double epsilon) {
-
-        return 0;
-
-    } //end computeMultiwayCut
-
-    default int computeMultiwayCut(FlowNetwork flowNetwork, MultiwayCutStrategy solver) {
 
         return 0;
 
@@ -41,5 +27,7 @@ public interface MultiwayCutStrategy {
     default void setSolver(MultiwayCutStrategy solver) {
 
     } //end setSolver
+
+    long getTime();
 
 } //end MultiwayCutStrategy
