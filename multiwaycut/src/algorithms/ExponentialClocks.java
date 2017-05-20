@@ -29,13 +29,13 @@ public class ExponentialClocks implements MultiwayCutStrategy {
     @Override
     public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
-        Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
-
+        //Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
+        Map<Integer, double[]> vertexLabels = solver.getVertexLabels();
         double[] edgeLabelSums = new double[flowNetwork.getNumEdges()];
 
         StdOut.println("Exponential Clocks");
 
-        solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
+        //solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
 
         long start = System.nanoTime();
         CalinescuUtility.subdivision(flowNetwork, vertexLabels);

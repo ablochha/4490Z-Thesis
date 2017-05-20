@@ -19,11 +19,15 @@ import java.util.Map;
  */
 public class LocalSearch implements MultiwayCutStrategy {
 
-    private long time;
-
     public int iterations = 0;
 
+    private long time;
+
     private double epsilon = 0.0;
+
+    private String initialLabeller;
+
+    private MultiwayCutStrategy ih;
 
     private Map<Integer, Integer> computeMinimumCostRelabel(FlowNetwork flowNetwork,
                                                            LinkedList<Integer> terminals,
@@ -224,12 +228,28 @@ public class LocalSearch implements MultiwayCutStrategy {
 
     } //end outputMultiwayCut
 
+    @Override
     public void setEpsilon(double epsilon){
 
         this.epsilon = epsilon;
 
     } //end setEpsilon
 
+    @Override
+    public void setInitialLabeller(String initialLabeller) {
+
+        this.initialLabeller = initialLabeller;
+
+    } //end setInitialLabeller
+
+    @Override
+    public void setIsolationHeuristic(MultiwayCutStrategy ih) {
+
+        this.ih = ih;
+
+    } //end setIsolationHeuristic
+
+    @Override
     public long getTime() {
 
         return time;
@@ -242,9 +262,7 @@ public class LocalSearch implements MultiwayCutStrategy {
     @Override
     public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
-        int labelCost;
-        int newLabelCost;
-        int bestLabelCost;
+        LocalSearchLabeller labeller = new LocalSearchLabeller(flowNetwork, initialLabeller, ih);
 
         Map<Integer, Integer> labelling;
         Map<Integer, Integer> newLabelling;
@@ -252,12 +270,16 @@ public class LocalSearch implements MultiwayCutStrategy {
 
         LinkedList<FlowEdge> multiwayCut;
 
+        int labelCost;
+        int newLabelCost;
+        int bestLabelCost;
+
         long start = System.nanoTime();
 
-        labelling = flowNetwork.initialLocalSearchLabel(flowNetwork.getTerminals());
-        labelCost = flowNetwork.localSearchLabelCost();
+        labelling = labeller.initialLocalSearchLabel();
+        labelCost = labeller.localSearchLabelCost();
 
-        StdOut.println("Local Search (epsilon: " + epsilon + ")");
+        StdOut.println("Local Search (epsilon: " + String.format("%.3f", (1 - (1.0/epsilon) / Math.pow(flowNetwork.getK(), 2))) + ")");
         //StdOut.println("The initial min cut cost is: " + labelCost);
 
         // Loop until no significant improved solutions are found
@@ -271,8 +293,8 @@ public class LocalSearch implements MultiwayCutStrategy {
                 iterations++;
 
                 newLabelling = computeMinimumCostRelabel(flowNetwork, flowNetwork.getTerminals(), i);
-                flowNetwork.relabel(newLabelling);
-                newLabelCost = flowNetwork.localSearchLabelCost();
+                labeller.relabel(newLabelling);
+                newLabelCost = labeller.localSearchLabelCost();
                 //StdOut.println("Min cut weight: " + newLabelCost);
 
                 // The new labelling is better than the labellings in this iteration
@@ -291,14 +313,14 @@ public class LocalSearch implements MultiwayCutStrategy {
 
                 bestLabelling = labelling;
                 bestLabelCost = labelCost;
-                flowNetwork.relabel(bestLabelling);
+                labeller.relabel(bestLabelling);
                 break;
 
             } //end if
 
         } //end while
 
-        multiwayCut = flowNetwork.localSearchMinCut();
+        multiwayCut = labeller.localSearchMinCut();
         outputMultiwayCut(multiwayCut);
 
         time = System.nanoTime() - start;

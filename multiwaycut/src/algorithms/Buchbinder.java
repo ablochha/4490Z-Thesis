@@ -5,6 +5,7 @@ import library.Matrix;
 import library.StdOut;
 import utility.Pair;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Bloch-Hansen on 2017-04-25.
@@ -14,6 +15,35 @@ public class Buchbinder implements MultiwayCutStrategy {
     private MultiwayCutStrategy solver;
 
     private long time;
+
+    private double radius;
+    private double calCost;
+
+    public void setSolver(MultiwayCutStrategy solver) {
+
+        this.solver = solver;
+
+    } //end setSolver
+
+    public long getTime() {
+
+        return time;
+
+    } //end getTime
+
+    @Override
+    public double getRadius() {
+
+        return radius;
+
+    } //end getRadius
+
+    @Override
+    public double getCalCost() {
+
+        return calCost;
+
+    } //end getRadius
 
     private double[][] createA(FlowNetwork flowNetwork) {
 
@@ -124,7 +154,10 @@ public class Buchbinder implements MultiwayCutStrategy {
                 } //end for
 
                 double[][] temp = Matrix.multiply(array, A);
-                transformedVector[entry.getValue()[i].index] = Matrix.multiply(A, Matrix.transpose(array))[0][0];
+                transformedVector[(int)entry.getValue()[i].index] = Matrix.multiply(temp, Matrix.transpose(array))[0][0];
+
+                //double[][] temp = Matrix.multiply(array, A);
+                //transformedVector[i] = Matrix.multiply(temp, Matrix.transpose(array))[0][0];
 
             } //end for
 
@@ -134,7 +167,13 @@ public class Buchbinder implements MultiwayCutStrategy {
                 test += transformedVector[x];
 
             } //end for
-            StdOut.println("THE COST OF THE TRANSFORMED VECTOR IS: " + test);
+            /*StdOut.println("THIS IS MADNESS");
+            for (int x = 0; x < transformedVector.length; x++) {
+
+                StdOut.println("Coordinate " + x + ": " + transformedVector[x]);
+
+            } //end for
+            StdOut.println("THE COST OF THE TRANSFORMED VECTOR IS: " + test);*/
             transform.put(entry.getKey(), transformedVector);
 
         } //end for
@@ -146,39 +185,37 @@ public class Buchbinder implements MultiwayCutStrategy {
     private int round(FlowNetwork flowNetwork,
                       Map<Integer, double[]> vertexLabels) {
 
-        int cost1 = CalinescuUtility.roundBuchbinder(new FlowNetwork(flowNetwork), vertexLabels);
-        vertexLabels = transform(flowNetwork, vertexLabels);
-        int cost2 = CalinescuUtility.roundCalinescu(new FlowNetwork(flowNetwork), vertexLabels, CalinescuUtility.uniformPermutation(flowNetwork));
+        FlowNetwork flowNetwork2 = new FlowNetwork(flowNetwork);
+        Map<Integer, double[]> vertexLabels2 = vertexLabels.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
-        StdOut.println("COST1: " + cost1 + ", COST2: " + cost2);
-        return Math.min(cost1, cost2);
+        CalinescuUtility.subdivision(flowNetwork, vertexLabels);
+        int cost1 = CalinescuUtility.roundBuchbinder(flowNetwork, vertexLabels);
+
+        CalinescuUtility.subdivision(flowNetwork2, vertexLabels2);
+        vertexLabels2 = transform(flowNetwork2, vertexLabels2);
+        Pair cost2 = CalinescuUtility.roundCalinescu(flowNetwork2, vertexLabels2, CalinescuUtility.singleThreshold(CalinescuUtility.uniformPermutation(flowNetwork2)));
+
+        radius = cost2.value;
+        calCost = cost2.index;
+
+        StdOut.println("COST1: " + cost1 + ", COST2: " + (int)cost2.index);
+        return Math.min(cost1, (int)cost2.index);
+        //return cost1;
 
     } //end round
-
-    public void setSolver(MultiwayCutStrategy solver) {
-
-        this.solver = solver;
-
-    } //end setSolver
-
-    public long getTime() {
-
-        return time;
-
-    } //end getTime
 
     @Override
     public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
-        Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
+        //Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
+        Map<Integer, double[]> vertexLabels = solver.getVertexLabels();
         double[] edgeLabelSums = new double[flowNetwork.getNumEdges()];
 
         StdOut.println("Buchbinder");
 
-        solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
+        //solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
 
         long start = System.nanoTime();
-        CalinescuUtility.subdivision(flowNetwork, vertexLabels);
         //outputCoordinates(flowNetwork, vertexLabels, edgeLabelSums);
         int cost = round(flowNetwork, vertexLabels);
         time = System.nanoTime() - start;

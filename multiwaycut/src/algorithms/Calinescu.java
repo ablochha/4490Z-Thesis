@@ -2,6 +2,8 @@ package algorithms;
 
 import datastructures.flownetwork.FlowNetwork;
 import library.StdOut;
+import utility.Pair;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -13,6 +15,8 @@ public class Calinescu implements MultiwayCutStrategy {
     private MultiwayCutStrategy solver;
 
     private long time;
+
+    private double radius;
 
     public void setSolver(MultiwayCutStrategy solver) {
 
@@ -26,28 +30,37 @@ public class Calinescu implements MultiwayCutStrategy {
 
     } //end getTime
 
+    @Override
+    public double getRadius() {
+
+        return radius;
+
+    } //end getRadius
+
     /**
      * Computes a minimum multiway cut.
      */
     @Override
     public int computeMultiwayCut(FlowNetwork flowNetwork) {
 
-        Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
+        //Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
+        Map<Integer, double[]> vertexLabels = solver.getVertexLabels();
         double[] edgeLabelSums = new double[flowNetwork.getNumEdges()];
 
         StdOut.println("Calinescu");
 
-        solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
+        //solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
 
         long start = System.nanoTime();
         //outputCoordinates(flowNetwork, vertexLabels, edgeLabelSums);
         CalinescuUtility.subdivision(flowNetwork, vertexLabels);
-        int cost = CalinescuUtility.roundCalinescu(flowNetwork, vertexLabels, CalinescuUtility.binomialPermutation(flowNetwork));
+        Pair cost = CalinescuUtility.roundCalinescu(flowNetwork, vertexLabels, CalinescuUtility.singleThreshold(CalinescuUtility.binomialPermutation(flowNetwork)));
         time = System.nanoTime() - start;
+        radius = cost.value;
 
-        StdOut.println("The weight of the multiway cut: " + cost);
+        StdOut.println("The weight of the multiway cut: " + (int)cost.index);
 
-        return cost;
+        return (int)cost.index;
 
     } //end computeMultiwayCut
 

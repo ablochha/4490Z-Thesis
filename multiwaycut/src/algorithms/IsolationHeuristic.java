@@ -7,6 +7,7 @@ import library.StdOut;
 
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Map;
 
 /**
  * IsolationHeuristic.java
@@ -21,6 +22,7 @@ import java.util.ListIterator;
 public class IsolationHeuristic implements MultiwayCutStrategy {
 
     private long time;
+    private Map<Integer, Integer> labelling;
 
     /**
      * Adds an extra edge with infinity capacity from every vertex to the sink.
@@ -183,11 +185,19 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
 
     } //end outputMultiwayCut
 
+    @Override
     public long getTime() {
 
         return time;
 
     } //end getTime
+
+    @Override
+    public Map<Integer, Integer> getIsolationHeuristicLabelling() {
+
+        return labelling;
+
+    } //end getLabelling
 
     /**
      * Computes a minimum multiway cut.
@@ -212,6 +222,9 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
         unionCuts(flowNetwork.getK(), heavyIndex, allMinCut, multiwayCut);
         int cost = outputMultiwayCut(multiwayCut);
         time = System.nanoTime() - start;
+
+        flowNetwork.removeVertex(flowNetwork.getMaxVertexId());
+        labelling = new LocalSearchLabeller(new FlowNetwork(flowNetwork), null, null).getIsolationHeuristicLabelling(flowNetwork, multiwayCut);
 
         return cost;
 
