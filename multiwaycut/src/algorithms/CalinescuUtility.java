@@ -5,10 +5,9 @@ import datastructures.flownetwork.FlowNetwork;
 import datastructures.flownetwork.FlowVertex;
 import library.StdOut;
 import library.StdRandom;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.ListIterator;
-import java.util.Map;
+import utility.Pair;
+
+import java.util.*;
 
 /**
  * Created by Bloch-Hansen on 2017-05-11.
@@ -51,19 +50,65 @@ public class CalinescuUtility {
         LinkedList<Integer> terminalOrder = new LinkedList<>();
         LinkedList<Integer> terminals = (LinkedList<Integer>)flowNetwork.getTerminals().clone();
 
-        // Randomly pick a permutation of terminals from 1 to k-1
-        while (terminals.size() > 1) {
+        // Randomly pick a permutation of terminals from 1 to k
+        while (terminals.size() > 0) {
 
-            int pick = StdRandom.uniform(0, terminals.size() - 1);
+            int pick = StdRandom.uniform(0, terminals.size());
             terminalOrder.add(terminals.remove(pick));
 
         } //end if
 
-        terminalOrder.add(flowNetwork.getK() - 1);
+        //terminalOrder.add(flowNetwork.getK() - 1);
 
         return terminalOrder;
 
     } //end uniformPermutation
+
+    public static LinkedList<Pair> singleThreshold(LinkedList<Integer> terminalOrder) {
+
+        LinkedList<Pair> order = new LinkedList<>();
+
+        double rand = StdRandom.uniform(0.0, 1.0);
+
+        for (int i = 0; i < terminalOrder.size(); i++) {
+
+            order.add(new Pair(terminalOrder.get(i), rand));
+
+        } //end for
+
+        return order;
+
+    } //end singleThreshold
+
+    public static LinkedList<Pair> descendingThreshold(LinkedList<Integer> terminalOrder) {
+
+        LinkedList<Pair> order = new LinkedList<>();
+
+        for (int i = 0; i < terminalOrder.size(); i++) {
+
+            order.add(new Pair(terminalOrder.get(i), StdRandom.uniform(0.0, 1.0)));
+
+        } //end for
+
+        Collections.sort(order, Collections.reverseOrder());
+
+        return order;
+
+    } //end singleThreshold
+
+    public static LinkedList<Pair> independentThreshold(LinkedList<Integer> terminalOrder) {
+
+        LinkedList<Pair> order = new LinkedList<>();
+
+        for (int i = 0; i < terminalOrder.size(); i++) {
+
+            order.add(new Pair(terminalOrder.get(i), StdRandom.uniform(0.0, 1.0)));
+
+        } //end for
+
+        return order;
+
+    } //end singleThreshold
 
     public static void subdivision(FlowNetwork flowNetwork,
                              Map<Integer, double[]> vertexLabels) {
@@ -104,14 +149,14 @@ public class CalinescuUtility {
 
     } //end outputCoordinates
 
-    public static int roundCalinescu(FlowNetwork flowNetwork,
-                      Map<Integer, double[]> vertexLabels,
-                      LinkedList<Integer> terminalOrder) {
+    public static Pair roundCalinescu(FlowNetwork flowNetwork,
+                                      Map<Integer, double[]> vertexLabels,
+                                      LinkedList<Pair> terminalOrder) {
 
         Map<Integer, LinkedList<Integer>> partitions = new LinkedHashMap<>();
         Map<Integer, FlowVertex> vertices = flowNetwork.getVertices();
 
-        double rand = StdRandom.uniform(0.0, 1.0);
+        //double rand = StdRandom.uniform(0.0, 1.0);
 
         // Initialize the partition list
         for (int i = 0; i < flowNetwork.getK(); i++) {
@@ -142,14 +187,14 @@ public class CalinescuUtility {
                 // Calculate the distance from the terminal to the vertex
                 for (int j = 0; j < flowNetwork.getK(); j++) {
 
-                    distance += Math.abs(vertexLabels.get(terminalOrder.get(i))[j] - vertexLabels.get(vertex)[j]);
+                    distance += Math.abs(vertexLabels.get((int)terminalOrder.get(i).index)[j] - vertexLabels.get(vertex)[j]);
 
                 } //end for
 
                 distance /= 2.0;
 
                 // The distance is within the sphere of radius rand
-                if (distance <= rand) {
+                if (distance <= terminalOrder.get(i).value) {
 
                     it.remove();
                     partitions.get(i).add(vertex);
@@ -161,7 +206,7 @@ public class CalinescuUtility {
 
         } //end for
 
-        return flowNetwork.calinescuCost();
+        return new Pair(calinescuCost(flowNetwork.getEdges()), terminalOrder.get(0).value);
 
     } //end round
 
@@ -205,7 +250,7 @@ public class CalinescuUtility {
 
         } //end for
 
-        return flowNetwork.calinescuCost();
+        return calinescuCost(flowNetwork.getEdges());
 
     } //end round
 
@@ -320,5 +365,32 @@ public class CalinescuUtility {
         } //end if
 
     } //end checkCoordinates
+
+    public static int calinescuCost(LinkedList<FlowEdge> edges) {
+
+        ListIterator<FlowEdge> it = edges.listIterator();
+        LinkedList<FlowEdge> multiwayCut = new LinkedList<>();
+
+        int multiwayCutCost = 0;
+
+        while (it.hasNext()) {
+
+            FlowEdge edge = it.next();
+
+            if (edge.getStartVertex().getCalinescu() != edge.getEndVertex().getCalinescu()
+                    && !multiwayCut.contains(edge)
+                    && !multiwayCut.contains(edge.getOriginal())) {
+
+                multiwayCut.add(edge.getOriginal());
+                multiwayCutCost += edge.getOriginal().getCapacity();
+                //StdOut.println("Edge: " + edge.edgeToString());
+
+            } //end if
+
+        } //end while
+
+        return multiwayCutCost;
+
+    } //end calinescuCost
 
 } //end CalinescuUtility
