@@ -5,23 +5,25 @@ import datastructures.flownetwork.FlowEdge;
 import datastructures.flownetwork.FlowNetwork;
 import datastructures.flownetwork.FlowVertex;
 import ilog.concert.*;
-import ilog.cplex.*;
-import library.StdOut;
+import ilog.cplex.IloCplex;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Created by Bloch-Hansen on 2017-02-15.
+ * Created by Bloch-Hansen on 2017-05-14.
  */
-public class MultiwayCutSolver implements MultiwayCutStrategy {
+public class Simplex implements MultiwayCutStrategy {
 
     private long time;
+    private Map<Integer, double[]> vertexLabels;
 
-    private void populateByRowInteger(IloMPModeler model,
-                                    IloNumVar[] edgeLabelSums,
-                                    FlowNetwork flowNetwork) throws IloException {
+    private void populateByRowLinear(IloMPModeler model,
+                                     IloNumVar[] edgeLabelSums,
+                                     Map<Integer, IloNumVar[]> vertexLabels,
+                                     FlowNetwork flowNetwork) throws IloException {
 
         LinkedList<FlowEdge> edges = flowNetwork.getEdges();
         LinkedList<Integer> terminals = flowNetwork.getTerminals();
@@ -30,22 +32,19 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
         int m = flowNetwork.getNumEdges();
         int k = flowNetwork.getK();
         int[] edgeCapacities = flowNetwork.getEdgeCapacities();
+        IloNumExpr[] distances = new IloNumExpr[m];
 
-        Map<Integer, IloNumVar[]> vertexLabels = new LinkedHashMap<>();
-        IloNumVar[][] edgeLabels = new IloNumVar[m][k];
-
-        // Initialize the boolean labels for the vertices
+        // Initialize the linear labels for the vertices
         for (Map.Entry<Integer, FlowVertex> entry : flowNetwork.getVertices().entrySet()) {
 
-            vertexLabels.put(entry.getValue().id(), model.boolVarArray(k));
+            vertexLabels.put(entry.getValue().id(), model.numVarArray(k, 0.0, 1.0, IloNumVarType.Float));
 
         } //end for
 
-        // Initialize the boolean labels for the edges
+        // Initialize the linear labels for the edges
         for (int i = 0; i < m; i++) {
 
-            edgeLabels[i] = model.boolVarArray(k);
-            edgeLabelSums[i] = model.numVar(0.0, 2.0, IloNumVarType.Int);
+            edgeLabelSums[i] = model.numVar(0.0, 2.0, IloNumVarType.Float);
 
         } //end for
 
@@ -58,13 +57,6 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
 
         } //end for
 
-        // An edge can only bridge 0 or 2 partitions
-        for (int i = 0; i < m; i++) {
-
-            model.addEq(edgeLabelSums[i], model.sum(edgeLabels[i]));
-
-        } //end for
-
         // Terminal vertices are locked into their partitions
         for (int i = 0; i < k; i++) {
 
@@ -72,31 +64,24 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
 
         } //end for
 
-        // Add the label inequalities
+        // Define the distance metric
         for (int i = 0; i < m; i++) {
 
             FlowEdge edge = edges.get(i);
+            distances[i] = model.numExpr();
 
-            // An edge's label for partition j must be greater or equal to the difference of its vertices
             for (int j = 0; j < k; j++) {
 
-                // xu[i] - xv[i] <= ze[i]
-                model.addLe(model.sum(
-                        model.prod(1.0, vertexLabels.get(edge.getStartVertex().id())[j]),
-                        model.prod(-1.0, vertexLabels.get(edge.getEndVertex().id())[j])),
-                        edgeLabels[i][j]);
-
-                // xv[i] - xu[i] <= ze[i]
-                model.addLe(model.sum(
-                        model.prod(1.0, vertexLabels.get(edge.getEndVertex().id())[j]),
-                        model.prod(-1.0, vertexLabels.get(edge.getStartVertex().id())[j])),
-                        edgeLabels[i][j]);
+                distances[i] = model.sum(distances[i], model.abs(model.diff(vertexLabels.get(edge.getStartVertex().id())[j],
+                        vertexLabels.get(edge.getEndVertex().id())[j])));
 
             } //end for
 
+            model.addEq(edgeLabelSums[i], distances[i]);
+
         } //end for
 
-    } //end populateByRow
+    } //end populateByRowLinear
 
     /**
      * Computes a minimum multiway cut.
@@ -106,9 +91,10 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
 
         int optimal = 0;
 
-        StdOut.println("Cplex");
+        //StdOut.println("Cplex");
 
-        long start = System.nanoTime();
+        Map<Integer, double[]> verticesRelaxed = new LinkedHashMap<>();
+        double[] edgesRelaxed = new double[flowNetwork.getNumEdges()];
 
         // Try to optimize the model
         try {
@@ -119,11 +105,12 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
             cplex.setParam(IloCplex.IntParam.NodeFileInd, 2);
             cplex.setParam(IloCplex.BooleanParam.MemoryEmphasis, true);
             cplex.setParam(IloCplex.IntParam.Threads, 4);
-            cplex.setParam(IloCplex.IntParam.RootAlg, 4);
+            cplex.setParam(IloCplex.IntParam.RootAlg, 0);
             //cplex.setParam(IloCplex.IntParam.Cliques, 3);
 
             IloNumVar[] edgeLabelSums = new IloNumVar[flowNetwork.getNumEdges()];
-            populateByRowInteger(cplex, edgeLabelSums, flowNetwork);
+            Map<Integer, IloNumVar[]> vertexLabels = new LinkedHashMap<>();
+            populateByRowLinear(cplex, edgeLabelSums, vertexLabels, flowNetwork);
 
             // Examine the solution
             if (cplex.solve()) {
@@ -133,12 +120,26 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
                 //System.out.println();
                 //System.out.println("Optimal = " + cplex.getObjValue());
                 optimal = (int)cplex.getObjValue();
-                StdOut.println("The weight of the multiway cut: " + optimal);
+                //StdOut.println("The weight of the multiway cut: " + optimal);
 
                 // Display which edges form the optimal multiway cut
                 for (int i = 0; i < flowNetwork.getNumEdges(); i++) {
 
-                    //System.out.println("Edge " + i + " = " + cplex.getValue(edgeLabelSums[i]) + ", " + flowNetwork.getEdgeCapacities()[i]);
+                    edgesRelaxed[i] = cplex.getValue(edgeLabelSums[i]);
+
+                } //end for
+
+                for (int i = 0; i < flowNetwork.getNumVertices(); i++) {
+
+                    double[] vertexVector = new double[flowNetwork.getK()];
+
+                    for (int j = 0; j < flowNetwork.getK(); j++) {
+
+                        vertexVector[j] = cplex.getValue(vertexLabels.get(i)[j]);
+
+                    } //end for
+
+                    verticesRelaxed.put(i, vertexVector);
 
                 } //end for
 
@@ -152,11 +153,10 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
 
         } //end try-catch
 
-        time = System.nanoTime() - start;
-
+        this.vertexLabels = verticesRelaxed;
         return optimal;
 
-    } //end computeIntegerMultiwayCut
+    } //end computeMultiwayCut
 
     public long getTime() {
 
@@ -164,4 +164,11 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
 
     } //end getTime
 
-} //end MultiwayCutSolver
+    @Override
+    public Map<Integer, double[]> getVertexLabels() {
+
+        return this.vertexLabels.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+    } //end getVertexLabels
+
+} //end Simplex
