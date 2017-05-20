@@ -289,6 +289,32 @@ public class FlowVertex {
 
     } //end getAllResEdges
 
+    public int getLabelledNeighbor() {
+
+        for (FlowEdge e : adjacencyList) {
+
+            if (e.getEndVertex().getLocalSearchLabel() >= 0) {
+
+                return e.getEndVertex().id();
+
+            } //end if
+
+        } //end for
+
+        for (FlowEdge e : resAdjacencyList) {
+
+            if (e.getStartVertex().getLocalSearchLabel() >= 0) {
+
+                return e.getStartVertex().id();
+
+            } //end if
+
+        } //end for
+
+        return -1;
+
+    } //end getLabelledNeighbor
+
     public int getNumEdges() {
 
         return getAllEdges().size() + getAllResEdges().size();
@@ -541,8 +567,7 @@ public class FlowVertex {
             // Residual capacity, can still push flow forwards
             if ((nextEdge.getFrom() == this.id() || nextEdge.getFrom() == -10)
                     && nextEdge.getEndVertex().getLabel() + 1 < newLabel
-                    && nextEdge.getCapacity() - nextEdge.getFlow() > 0
-                    && nextEdge.getEndVertex().id() != source) {
+                    && nextEdge.getCapacity() - nextEdge.getFlow() > 0) {
 
                 newLabel = nextEdge.getEndVertex().getLabel() + 1;
 
@@ -568,8 +593,7 @@ public class FlowVertex {
             // Residual capacity, can still push flow forwards
             if ((nextEdge.getFrom() == this.id() || nextEdge.getFrom() == -10)
                     && nextEdge.getStartVertex().getLabel() + 1 < newLabel
-                    && nextEdge.getCapacity() - nextEdge.getFlow() > 0
-                    && nextEdge.getStartVertex().id() != source) {
+                    && nextEdge.getCapacity() - nextEdge.getFlow() > 0) {
 
                 newLabel = nextEdge.getStartVertex().getLabel() + 1;
 
@@ -613,8 +637,7 @@ public class FlowVertex {
 
                 // The edge has no flow but positive capacity and doesn't lead to the source
                 if (pushEdge.getStartVertex().getLabel() == pushEdge.getEndVertex().getLabel() + 1
-                        && 0 == pushEdge.getFlow() && pushEdge.getCapacity() > 0
-                        && pushEdge.getEndVertex().id() != source) {
+                        && 0 == pushEdge.getFlow() && pushEdge.getCapacity() > 0) {
 
                     //StdOut.println("Start Vertex: " + pushEdge.getStartVertex().vertexToString());
                     //StdOut.println("End Vertex: " + pushEdge.getEndVertex().vertexToString());
@@ -698,8 +721,7 @@ public class FlowVertex {
 
                 // The next edge is a residual edge, and it currently has no flow but positive capacity
                 if (pushEdge.getEndVertex().getLabel() == pushEdge.getStartVertex().getLabel() + 1
-                        && 0 == pushEdge.getFlow() && pushEdge.getCapacity() > 0
-                        && pushEdge.getStartVertex().id() != source) {
+                        && 0 == pushEdge.getFlow() && pushEdge.getCapacity() > 0) {
 
                     //StdOut.println("Start Vertex: " + pushEdge.getEndVertex().vertexToString());
                     //StdOut.println("End Vertex: " + pushEdge.getStartVertex().vertexToString());

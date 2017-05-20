@@ -455,36 +455,6 @@ public class FlowNetwork {
 
     } //end goldbergTarjan
 
-    public Map<Integer, Integer> initialLocalSearchLabel(LinkedList<Integer> terminals) {
-
-        return graph.initialLocalSearchLabel(terminals);
-
-    } //end initialLocalSearchLabel
-
-    public int localSearchLabelCost() {
-
-        return graph.localSearchLabelCost();
-
-    } //end localSearchLabelCost
-
-    public int calinescuCost() {
-
-        return graph.calinescuCost(getEdges());
-
-    } //end calinescuCost
-
-    public LinkedList<FlowEdge> localSearchMinCut() {
-
-        return graph.localSearchMinCut();
-
-    } //end localSearchMinCut
-
-    public void relabel(Map<Integer, Integer> labelling) {
-
-        graph.relabel(labelling);
-
-    } //end relabel
-
     public Map<Integer, FlowVertex> getVertices() {
 
         return graph.getVertices();
