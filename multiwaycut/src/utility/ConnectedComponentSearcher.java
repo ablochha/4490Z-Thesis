@@ -23,86 +23,27 @@ public class ConnectedComponentSearcher {
 
     public FlowNetwork getLargestConnectedComponent(FlowNetwork flowNetwork) {
 
-        LinkedList<FlowVertex> bfs = new LinkedList<>();
-        Map<Integer, Boolean> marked = new LinkedHashMap<>();
         Map<Integer, FlowVertex> vertices = flowNetwork.getVertices();
-
+        BreadthFirstSearch bfs = new BreadthFirstSearch(vertices, new DefaultReachability());
+        Map<Integer, Boolean> marked = bfs.getMarked();
         LinkedList<FlowEdge> largest = new LinkedList<>();
 
         int largestComponent = 0;
-        int currentComponent = 0;
-
-        for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
-
-            marked.put(entry.getValue().id(), false);
-
-        } //end for
 
         for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
 
             if (!marked.get(entry.getValue().id()).booleanValue()) {
 
-                LinkedList<FlowEdge> edges = new LinkedList<>();
+                bfs.search(entry.getValue().id(), false);
 
-                bfs.add(entry.getValue());
-                marked.put(entry.getValue().id(), true);
-                currentComponent++;
+                if (bfs.getNodeCount() > largestComponent) {
 
-                while (!bfs.isEmpty()) {
-
-                    FlowVertex start = bfs.removeFirst();
-
-                    for (FlowEdge edge : start.getAllEdges()) {
-
-                        FlowVertex end = edge.getEndVertex();
-
-                        if (!edges.contains(edge)) {
-
-                            edges.add(edge);
-
-                        } //end if
-
-                        if (!marked.get(end.id()).booleanValue()) {
-
-                            marked.put(end.id(), true);
-                            bfs.add(end);
-                            currentComponent++;
-
-                        } //end if
-
-                    } //end for
-
-                    for (FlowEdge edge : start.getAllResEdges()) {
-
-                        FlowVertex end = edge.getStartVertex();
-
-                        if (!edges.contains(edge)) {
-
-                            edges.add(edge);
-
-                        } //end if
-
-                        if (!marked.get(end.id()).booleanValue()) {
-
-                            marked.put(end.id(), true);
-                            bfs.add(end);
-                            currentComponent++;
-
-                        } //end if
-
-                    } //end for
-
-                } //end while
-
-                if (currentComponent > largestComponent) {
-
-                    largestComponent = currentComponent;
-                    largest = edges;
+                    largestComponent = bfs.getNodeCount();
+                    largest = bfs.getEdges();
 
                 } //end if
 
                 //StdOut.println("Largest: " + largestComponent + ", Current: " + currentComponent);
-                currentComponent = 0;
 
             } //end if
 
@@ -126,19 +67,13 @@ public class ConnectedComponentSearcher {
 
     public void connectComponents(FlowNetwork flowNetwork) {
 
-        LinkedList<FlowVertex> bfs = new LinkedList<>();
-        Map<Integer, Boolean> marked = new LinkedHashMap<>();
         Map<Integer, FlowVertex> vertices = flowNetwork.getVertices();
+        BreadthFirstSearch bfs = new BreadthFirstSearch(vertices, new DefaultReachability());
+        Map<Integer, Boolean> marked = bfs.getMarked();
 
         FlowVertex connector = null;
 
         int current = 0;
-
-        for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
-
-            marked.put(entry.getValue().id(), false);
-
-        } //end for
 
         for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
 
@@ -151,41 +86,7 @@ public class ConnectedComponentSearcher {
                 } //end if
 
                 connector = entry.getValue();
-
-                bfs.add(entry.getValue());
-                marked.put(entry.getValue().id(), true);
-
-                while (!bfs.isEmpty()) {
-
-                    FlowVertex start = bfs.removeFirst();
-
-                    for (FlowEdge edge : start.getAllEdges()) {
-
-                        FlowVertex end = edge.getEndVertex();
-
-                        if (!marked.get(end.id()).booleanValue()) {
-
-                            marked.put(end.id(), true);
-                            bfs.add(end);
-
-                        } //end if
-
-                    } //end for
-
-                    for (FlowEdge edge : start.getAllResEdges()) {
-
-                        FlowVertex end = edge.getStartVertex();
-
-                        if (!marked.get(end.id()).booleanValue()) {
-
-                            marked.put(end.id(), true);
-                            bfs.add(end);
-
-                        } //end if
-
-                    } //end for
-
-                } //end while
+                bfs.search(entry.getValue().id(), false);
 
                 current++;
 

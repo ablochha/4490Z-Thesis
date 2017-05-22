@@ -30,6 +30,21 @@ public class GraphFormatReader {
     private static final String GEOGRAPHIC = "GEOGRAPHIC";
     private static final String OTHER = "OTHER";
 
+    private static double initialCapacity1;
+    private static double initialCapacity2;
+
+    public double getCapacity1() {
+
+        return initialCapacity1;
+
+    } //end getCapacity1
+
+    public double getCapacity2() {
+
+        return initialCapacity2;
+
+    } //end getCapacity2
+
     public FlowNetwork parse(String filename, String outName) {
 
         In format = new In(filename);
@@ -242,8 +257,6 @@ public class GraphFormatReader {
         int initialDensity;
 
         double terminalDensityMultiplier;
-        double initialCapacity1;
-        double initialCapacity2;
 
         in.readLine();
         flowNetwork.setK(in.readInt());
@@ -313,8 +326,6 @@ public class GraphFormatReader {
         int numVertices;
 
         double terminalDensityMultiplier;
-        double initialCapacity1;
-        double initialCapacity2;
         double xModifier;
         double yModifier;
 
@@ -416,7 +427,7 @@ public class GraphFormatReader {
 
     } //end generateTerminals
 
-    private void outputGraph(FlowNetwork flowNetwork, String filename, String outName){
+    public void outputGraph(FlowNetwork flowNetwork, String filename, String outName){
 
         Out out = new Out(filename.substring(0, filename.length() - 4) + outName);
 

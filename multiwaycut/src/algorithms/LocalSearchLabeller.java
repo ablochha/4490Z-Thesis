@@ -4,6 +4,9 @@ import datastructures.flownetwork.FlowEdge;
 import datastructures.flownetwork.FlowNetwork;
 import datastructures.flownetwork.FlowVertex;
 import library.StdOut;
+import utility.BreadthFirstSearch;
+import utility.DefaultReachability;
+import utility.MinCutReachability;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -22,10 +25,8 @@ public class LocalSearchLabeller {
 
     private Map<Integer, FlowVertex> vertices;
     private Map<Integer, Integer> initialLabelling;
-    private Map<Integer, Boolean> marked;
 
     private LinkedList<Integer> terminals;
-    private LinkedList<FlowVertex> bfs;
 
     public LocalSearchLabeller(FlowNetwork flowNetwork, String initialLabeller, MultiwayCutStrategy ih) {
 
@@ -34,11 +35,9 @@ public class LocalSearchLabeller {
         this.ih = ih;
 
         vertices = flowNetwork.getVertices();
-        initialLabelling = new LinkedHashMap<>();
-        marked = new LinkedHashMap<>();
-
         terminals = flowNetwork.getTerminals();
-        bfs = new LinkedList<>();
+
+        initialLabelling = new LinkedHashMap<>();
 
     } //end LocalSearchLabeller
 
@@ -53,21 +52,6 @@ public class LocalSearchLabeller {
     } //end relabel
 
     public Map<Integer, Integer> initialLocalSearchLabel() {
-
-        for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
-
-            marked.put(entry.getValue().id(), false);
-
-        } //end for
-
-        for (int i = 0; i < terminals.size(); i++) {
-
-            vertices.get(terminals.get(i)).setLocalSearchLabel(i);
-            initialLabelling.put(terminals.get(i), i);
-            marked.put(terminals.get(i), true);
-            bfs.add(vertices.get(terminals.get(i)));
-
-        } //end for
 
         switch (initialLabeller) {
 
@@ -141,12 +125,10 @@ public class LocalSearchLabeller {
 
     public Map<Integer, Integer> getIsolationHeuristicLabelling(FlowNetwork ihFlowNetwork, LinkedList<FlowEdge> multiwayCut) {
 
-        Map<Integer, Integer> ihLabelling = new LinkedHashMap<>();
         Map<Integer, FlowVertex> ihVertices = ihFlowNetwork.getVertices();
-        Map<Integer, Boolean> ihMarked = new LinkedHashMap<>();
-
-        LinkedList<Integer> ihTerminals = ihFlowNetwork.getTerminals();
-        LinkedList<FlowVertex> ihbfs = new LinkedList<>();
+        BreadthFirstSearch bfs = new BreadthFirstSearch(ihVertices, ihFlowNetwork.getTerminals(), new MinCutReachability());
+        Map<Integer, Boolean> ihMarked = bfs.getMarked();
+        Map<Integer, Integer> ihLabelling = bfs.getLabelling();
 
         for (int i = 0; i < multiwayCut.size(); i++) {
 
@@ -155,56 +137,7 @@ public class LocalSearchLabeller {
 
         } //end for
 
-        for (Map.Entry<Integer, FlowVertex> entry : ihVertices.entrySet()) {
-
-            ihMarked.put(entry.getValue().id(), false);
-
-        } //end for
-
-        for (int i = 0; i < ihTerminals.size(); i++) {
-
-            ihVertices.get(ihTerminals.get(i)).setLocalSearchLabel(i);
-            ihLabelling.put(ihTerminals.get(i), i);
-            ihMarked.put(ihTerminals.get(i), true);
-            ihbfs.add(ihVertices.get(ihTerminals.get(i)));
-
-        } //end for
-
-        while (!ihbfs.isEmpty()) {
-
-            FlowVertex start = ihbfs.removeFirst();
-
-            for (FlowEdge edge : start.getAllEdges()) {
-
-                FlowVertex end = edge.getEndVertex();
-
-                if (!ihMarked.get(end.id()).booleanValue()) {
-
-                    ihMarked.put(end.id(), true);
-                    end.setLocalSearchLabel(start.getLocalSearchLabel());
-                    ihLabelling.put(end.id(), end.getLocalSearchLabel());
-                    ihbfs.add(end);
-
-                } //end if
-
-            } //end for
-
-            for (FlowEdge edge : start.getAllResEdges()) {
-
-                FlowVertex end = edge.getStartVertex();
-
-                if (!ihMarked.get(end.id()).booleanValue()) {
-
-                    ihMarked.put(end.id(), true);
-                    end.setLocalSearchLabel(start.getLocalSearchLabel());
-                    ihLabelling.put(end.id(), end.getLocalSearchLabel());
-                    ihbfs.add(end);
-
-                } //end if
-
-            } //end for
-
-        } //end while
+        bfs.search(false);
 
         // Add the multiway cut back in
         for (int i = 0; i < multiwayCut.size(); i++) {
@@ -220,46 +153,10 @@ public class LocalSearchLabeller {
 
                 FlowVertex vertex = ihVertices.get(ihVertices.get(i).getLabelledNeighbor());
 
-                ihMarked.put(i, true);
                 ihVertices.get(i).setLocalSearchLabel(vertex.getLocalSearchLabel());
                 ihLabelling.put(i, vertex.getLocalSearchLabel());
-                ihbfs.add(ihVertices.get(i));
 
-                while (!ihbfs.isEmpty()) {
-
-                    FlowVertex start = ihbfs.removeFirst();
-
-                    for (FlowEdge edge : start.getAllEdges()) {
-
-                        FlowVertex end = edge.getEndVertex();
-
-                        if (!ihMarked.get(end.id()).booleanValue()) {
-
-                            ihMarked.put(end.id(), true);
-                            end.setLocalSearchLabel(start.getLocalSearchLabel());
-                            ihLabelling.put(end.id(), end.getLocalSearchLabel());
-                            ihbfs.add(end);
-
-                        } //end if
-
-                    } //end for
-
-                    for (FlowEdge edge : start.getAllResEdges()) {
-
-                        FlowVertex end = edge.getStartVertex();
-
-                        if (!ihMarked.get(end.id()).booleanValue()) {
-
-                            ihMarked.put(end.id(), true);
-                            end.setLocalSearchLabel(start.getLocalSearchLabel());
-                            ihLabelling.put(end.id(), end.getLocalSearchLabel());
-                            ihbfs.add(end);
-
-                        } //end if
-
-                    } //end for
-
-                } //end while
+                bfs.search(i, false);
 
             } //end if
 
@@ -270,6 +167,13 @@ public class LocalSearchLabeller {
     } //end getIsolationHeuristicLabelling
 
     private Map<Integer, Integer> oneEach() {
+
+        for (int i = 0; i < terminals.size(); i++) {
+
+            vertices.get(terminals.get(i)).setLocalSearchLabel(i);
+            initialLabelling.put(terminals.get(i), i);
+
+        } //end for
 
         for (int i = 0; i < flowNetwork.getNumVertices(); i++) {
 
@@ -293,86 +197,19 @@ public class LocalSearchLabeller {
 
     private Map<Integer, Integer> clumps() {
 
-        while (!bfs.isEmpty()) {
+        BreadthFirstSearch bfs = new BreadthFirstSearch(vertices, terminals, new DefaultReachability());
+        bfs.search(false);
 
-            FlowVertex start = bfs.removeFirst();
-
-            for (FlowEdge edge : start.getAllEdges()) {
-
-                FlowVertex end = edge.getEndVertex();
-
-                if (!marked.get(end.id()).booleanValue()) {
-
-                    marked.put(end.id(), true);
-                    end.setLocalSearchLabel(start.getLocalSearchLabel());
-                    initialLabelling.put(end.id(), end.getLocalSearchLabel());
-                    bfs.add(end);
-
-                } //end if
-
-            } //end for
-
-            for (FlowEdge edge : start.getAllResEdges()) {
-
-                FlowVertex end = edge.getStartVertex();
-
-                if (!marked.get(end.id()).booleanValue()) {
-
-                    marked.put(end.id(), true);
-                    end.setLocalSearchLabel(start.getLocalSearchLabel());
-                    initialLabelling.put(end.id(), end.getLocalSearchLabel());
-                    bfs.add(end);
-
-                } //end if
-
-            } //end for
-
-        } //end while
-
-        return initialLabelling;
+        return bfs.getLabelling();
 
     } //end oneEach
 
     private Map<Integer, Integer> random() {
 
-        while (!bfs.isEmpty()) {
+        BreadthFirstSearch bfs = new BreadthFirstSearch(vertices, terminals, new DefaultReachability());
+        bfs.search(true);
 
-            Collections.shuffle(bfs);
-            FlowVertex start = bfs.removeFirst();
-
-            for (FlowEdge edge : start.getAllEdges()) {
-
-                FlowVertex end = edge.getEndVertex();
-
-                if (!marked.get(end.id()).booleanValue()) {
-
-                    marked.put(end.id(), true);
-                    end.setLocalSearchLabel(start.getLocalSearchLabel());
-                    initialLabelling.put(end.id(), end.getLocalSearchLabel());
-                    bfs.add(end);
-
-                } //end if
-
-            } //end for
-
-            for (FlowEdge edge : start.getAllResEdges()) {
-
-                FlowVertex end = edge.getStartVertex();
-
-                if (!marked.get(end.id()).booleanValue()) {
-
-                    marked.put(end.id(), true);
-                    end.setLocalSearchLabel(start.getLocalSearchLabel());
-                    initialLabelling.put(end.id(), end.getLocalSearchLabel());
-                    bfs.add(end);
-
-                } //end if
-
-            } //end for
-
-        } //end while
-
-        return initialLabelling;
+        return bfs.getLabelling();
 
     } //end oneEach
 

@@ -1,6 +1,8 @@
 package datastructures.flownetwork;
 
 import library.StdOut;
+import utility.BreadthFirstSearch;
+import utility.MinCutReachability;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -317,58 +319,11 @@ public class Graph {
 
     public LinkedList<FlowEdge> minCut(int sinkId, int sourceId) {
 
-        LinkedList<FlowVertex> bfs = new LinkedList<>();
+        BreadthFirstSearch bfs = new BreadthFirstSearch(vertices, new MinCutReachability());
+        bfs.search(sourceId, false);
+
+        Map<Integer, Boolean> marked = bfs.getMarked();
         LinkedList<FlowEdge> minCut = new LinkedList<>();
-        Map<Integer, Boolean> marked = new LinkedHashMap<>();
-
-        for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
-
-            marked.put(entry.getValue().id(), false);
-
-        } //end for
-
-        bfs.add(vertices.get(sourceId));
-        marked.put(sourceId, true);
-
-        while (!bfs.isEmpty()) {
-
-            FlowVertex start = bfs.removeFirst();
-
-            for (FlowEdge edge : start.getAllEdges()) {
-
-                FlowVertex end = edge.getEndVertex();
-
-                if ((edge.getCapacity() - edge.getFlow() > 0 && !marked.get(end.id()).booleanValue())
-                        || (edge.getCapacity() - edge.getFlow() == 0 && !marked.get(end.id()).booleanValue()
-                        && edge.getCapacity() > 0
-                        && edge.getFrom() != start.id())) {
-
-                    marked.put(end.id(), true);
-                    bfs.add(end);
-                    //StdOut.println("MARKED: " + end.vertexToString());
-
-                } //end if
-
-            } //end for
-
-            for (FlowEdge edge : start.getAllResEdges()) {
-
-                FlowVertex end = edge.getStartVertex();
-
-                if ((edge.getCapacity() - edge.getFlow() > 0 && !marked.get(end.id()).booleanValue())
-                        || (edge.getCapacity() - edge.getFlow() == 0 && !marked.get(end.id()).booleanValue()
-                        && edge.getCapacity() > 0
-                        && edge.getFrom() != start.id())) {
-
-                    marked.put(end.id(), true);
-                    bfs.add(end);
-                    //StdOut.println("MARKED: " + end.vertexToString());
-
-                } //end if
-
-            } //end for
-
-        } //end while
 
         for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
 
@@ -376,7 +331,8 @@ public class Graph {
 
                 if ((entry.getValue() == edge.getStartVertex()) && (marked.get(edge.getStartVertex().id())) &&
                         (!marked.get(edge.getEndVertex().id()))) {
-//StdOut.println("ADDED EDGE: " + edge.edgeToString());
+
+                    //StdOut.println("ADDED EDGE: " + edge.edgeToString());
                     minCut.add(edge);
 
                 } //end if
@@ -387,6 +343,7 @@ public class Graph {
 
                 if ((entry.getValue() == edge.getEndVertex()) && (marked.get(edge.getEndVertex().id())) &&
                         (!marked.get(edge.getStartVertex().id()))) {
+
                     //StdOut.println("ADDED EDGE: " + edge.edgeToString());
                     minCut.add(edge);
 
