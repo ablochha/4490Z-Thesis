@@ -2,6 +2,7 @@ package algorithms;
 
 import datastructures.flownetwork.FlowNetwork;
 import library.StdOut;
+import library.StdRandom;
 import utility.Pair;
 
 import java.util.LinkedHashMap;
@@ -54,7 +55,7 @@ public class Calinescu implements MultiwayCutStrategy {
         long start = System.nanoTime();
         //outputCoordinates(flowNetwork, vertexLabels, edgeLabelSums);
         CalinescuUtility.subdivision(flowNetwork, vertexLabels);
-        Pair cost = CalinescuUtility.roundCalinescu(flowNetwork, vertexLabels, CalinescuUtility.singleThreshold(CalinescuUtility.binomialPermutation(flowNetwork)));
+        Pair cost = CalinescuUtility.roundCalinescu(flowNetwork, vertexLabels, CalinescuUtility.singleThreshold(CalinescuUtility.binomialPermutation(flowNetwork), StdRandom.uniform(0.0, 1.0)));
         time = System.nanoTime() - start;
         radius = cost.value;
 

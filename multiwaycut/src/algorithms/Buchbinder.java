@@ -3,6 +3,7 @@ package algorithms;
 import datastructures.flownetwork.FlowNetwork;
 import library.Matrix;
 import library.StdOut;
+import library.StdRandom;
 import utility.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -188,19 +189,38 @@ public class Buchbinder implements MultiwayCutStrategy {
         FlowNetwork flowNetwork2 = new FlowNetwork(flowNetwork);
         Map<Integer, double[]> vertexLabels2 = vertexLabels.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
-        CalinescuUtility.subdivision(flowNetwork, vertexLabels);
-        int cost1 = CalinescuUtility.roundBuchbinder(flowNetwork, vertexLabels);
+        long start = System.nanoTime();
+        int alg = StdRandom.uniform(1, 230);
+
+        int cost;
+
+        if (alg < 122) {
+
+            CalinescuUtility.subdivision(flowNetwork, vertexLabels);
+            cost = CalinescuUtility.roundBuchbinder(flowNetwork, vertexLabels);
+
+        } //end if
+
+        else {
+
+            CalinescuUtility.subdivision(flowNetwork, vertexLabels);
+            vertexLabels = transform(flowNetwork, vertexLabels);
+            cost = (int) CalinescuUtility.roundCalinescu(flowNetwork, vertexLabels, CalinescuUtility.singleThreshold(CalinescuUtility.uniformPermutation(flowNetwork), StdRandom.uniform(0.0, 1.0))).index;
+
+        } //end else
+
+        time = System.nanoTime() - start;
 
         CalinescuUtility.subdivision(flowNetwork2, vertexLabels2);
         vertexLabels2 = transform(flowNetwork2, vertexLabels2);
-        Pair cost2 = CalinescuUtility.roundCalinescu(flowNetwork2, vertexLabels2, CalinescuUtility.singleThreshold(CalinescuUtility.uniformPermutation(flowNetwork2)));
+        Pair cost2 = CalinescuUtility.roundCalinescu(flowNetwork2, vertexLabels2, CalinescuUtility.singleThreshold(CalinescuUtility.uniformPermutation(flowNetwork2), StdRandom.uniform(0.0, 1.0)));
 
         radius = cost2.value;
         calCost = cost2.index;
 
-        StdOut.println("COST1: " + cost1 + ", COST2: " + (int)cost2.index);
-        return Math.min(cost1, (int)cost2.index);
-        //return cost1;
+        //StdOut.println("COST1: " + cost1 + ", COST2: " + (int)cost2.index);
+        //return Math.min(cost1, (int)cost2.index);
+        return cost;
 
     } //end round
 
@@ -215,10 +235,8 @@ public class Buchbinder implements MultiwayCutStrategy {
 
         //solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
 
-        long start = System.nanoTime();
         //outputCoordinates(flowNetwork, vertexLabels, edgeLabelSums);
         int cost = round(flowNetwork, vertexLabels);
-        time = System.nanoTime() - start;
 
         StdOut.println("The weight of the multiway cut: " + cost);
 
