@@ -64,6 +64,24 @@ public class CalinescuUtility {
 
     } //end uniformPermutation
 
+    private static int getIndex(LinkedList<Integer> terminals, int terminal) {
+
+        int index = -1;
+
+        for (int i = 0; i < terminals.size(); i++) {
+
+            if (terminals.get(i) == terminal) {
+
+                index = i;
+
+            } //end if
+
+        } //end for
+
+        return index;
+
+    } //end getIndex
+
     public static LinkedList<Pair> singleThreshold(LinkedList<Integer> terminalOrder, double rand) {
 
         LinkedList<Pair> order = new LinkedList<>();
@@ -78,13 +96,13 @@ public class CalinescuUtility {
 
     } //end singleThreshold
 
-    public static LinkedList<Pair> descendingThreshold(LinkedList<Integer> terminalOrder) {
+    public static LinkedList<Pair> descendingThreshold(LinkedList<Integer> terminalOrder, double b) {
 
         LinkedList<Pair> order = new LinkedList<>();
 
         for (int i = 0; i < terminalOrder.size(); i++) {
 
-            order.add(new Pair(terminalOrder.get(i), StdRandom.uniform(0.0, 0.464102)));
+            order.add(new Pair(terminalOrder.get(i), StdRandom.uniform(0.0, b)));
 
         } //end for
 
@@ -114,6 +132,7 @@ public class CalinescuUtility {
         LinkedList<FlowEdge> queue = flowNetwork.getEdges();
 
         while (queue.size() > 0) {
+
             //StdOut.println("SIZE: " + queue.size());
             checkCoordinates(flowNetwork, queue, vertexLabels);
 
@@ -123,12 +142,12 @@ public class CalinescuUtility {
 
         for (int i = 0; i < queue.size(); i++) {
 
-            //StdOut.println("Coordinates: ");
+            StdOut.println("Unsorted edge (" + queue.get(i).getStartVertex().id() + "," + queue.get(i).getEndVertex().id() + ")");
             int count = 0;
 
             for (int j = 0; j < flowNetwork.getK(); j++) {
 
-                //StdOut.println(j + " " + vertexLabels.get(queue.get(i).getStartVertex().id())[j] + " " + vertexLabels.get(queue.get(i).getEndVertex().id())[j]);
+                StdOut.println(j + " " + vertexLabels.get(queue.get(i).getStartVertex().id())[j] + " " + vertexLabels.get(queue.get(i).getEndVertex().id())[j]);
 
                 // The ith coordinate differs
                 //if (vertexLabels.get(queue.get(i).getStartVertex().id())[j] != vertexLabels.get(queue.get(i).getEndVertex().id())[j]) {
@@ -160,13 +179,13 @@ public class CalinescuUtility {
 
         } //end for
 
-        for (int i = 0; i < flowNetwork.getNumVertices(); i++) {
+        for (Map.Entry<Integer, FlowVertex> entry : flowNetwork.getVertices().entrySet()) {
 
-            StdOut.print("Relaxed Vertex " + i + ": ");
+            StdOut.print("Relaxed Vertex " + entry.getKey() + ": ");
 
             for (int j = 0; j < flowNetwork.getK(); j++) {
 
-                StdOut.print(String.format("%.2f", vertexLabels.get(i)[j]) + ", ");
+                StdOut.print(String.format("%.2f", vertexLabels.get(entry.getKey())[j]) + ", ");
 
             } //end for
 
@@ -187,14 +206,20 @@ public class CalinescuUtility {
         for (int i = 0; i < flowNetwork.getK(); i++) {
 
             partitions.put(i, new LinkedList<>());
+            partitions.get(i).add((int)terminalOrder.get(i).index);
+            vertices.get((int)terminalOrder.get(i).index).setCalinescu(i);
 
         } //end for
 
         // Set all the vertices to the kth list
         for (Map.Entry<Integer, double[]> entry : vertexLabels.entrySet()) {
 
-            partitions.get(flowNetwork.getK() - 1).add(entry.getKey());
-            vertices.get(entry.getKey()).setCalinescu(flowNetwork.getK() - 1);
+            if (!flowNetwork.getTerminals().contains(entry.getKey())) {
+
+                partitions.get(flowNetwork.getK() - 1).add(entry.getKey());
+                vertices.get(entry.getKey()).setCalinescu(flowNetwork.getK() - 1);
+
+            } //end if
 
         } //end for
 
@@ -206,20 +231,11 @@ public class CalinescuUtility {
             // Loop through all of the vertices remaining in the kth list
             while (it.hasNext()) {
 
+                //int vertex = partition.get(i);
                 int vertex = it.next();
-                double distance = 0.0;
-
-                // Calculate the distance from the terminal to the vertex
-                for (int j = 0; j < flowNetwork.getK(); j++) {
-
-                    distance += Math.abs(vertexLabels.get((int)terminalOrder.get(i).index)[j] - vertexLabels.get(vertex)[j]);
-
-                } //end for
-
-                distance /= 2.0;
 
                 // The distance is within the sphere of radius rand
-                if (distance <= terminalOrder.get(i).value) {
+                if (vertexLabels.get(vertex)[getIndex(flowNetwork.getTerminals(), (int)terminalOrder.get(i).index)] >= terminalOrder.get(i).value) {
 
                     it.remove();
                     partitions.get(i).add(vertex);
@@ -235,7 +251,7 @@ public class CalinescuUtility {
 
     } //end round
 
-    public static int roundBuchbinder(FlowNetwork flowNetwork,
+    public static double roundBuchbinder(FlowNetwork flowNetwork,
                                       Map<Integer, double[]> vertexLabels) {
 
         Map<Integer, FlowVertex> vertices = flowNetwork.getVertices();
@@ -256,31 +272,11 @@ public class CalinescuUtility {
             double clock;
             int index = -1;
 
-            /*if (Arrays.stream(entry.getValue()).anyMatch(x -> x == 1.0)) {
-
-                for (int i = 0; i < flowNetwork.getK(); i++) {
-
-                    if (entry.getValue()[i] == 1) {
-
-                        vertices.get(entry.getKey()).setCalinescu(i);
-
-                    } //end if
-
-                } //end for
-
-            } //end if
-
-            else {
-
-
-
-            } //end else*/
-
             // Find the smallest exponential clock
             for (int i = 0; i < flowNetwork.getK(); i++) {
 
                 clock = clocks[i] / entry.getValue()[i];
-                StdOut.println("Vertex " + entry.getKey() + ": Clock " + i + " (" + clocks[i] + ") divided by " + entry.getValue()[i] + " = " + clock);
+                //StdOut.println("Vertex " + entry.getKey() + ": Clock " + i + " (" + clocks[i] + ") divided by " + entry.getValue()[i] + " = " + clock);
 
                 // Check if this clock is the winner
                 if (clock < bestClock) {
@@ -292,7 +288,7 @@ public class CalinescuUtility {
 
             } //end for
 
-            StdOut.println("Vertex " + entry.getKey() + " assigned to label " + index);
+            //StdOut.println("Vertex " + entry.getKey() + " assigned to label " + index);
             vertices.get(entry.getKey()).setCalinescu(index);
 
         } //end for
@@ -409,18 +405,19 @@ public class CalinescuUtility {
         // Subdivision is required
         if (count > 2) {
 
+            //StdOut.println("The edge (" + edge.getStartVertex().id() + ", " + edge.getEndVertex().id() + ") needs to be subdivided");
             subdivide(flowNetwork, queue, edge, vertexLabels);
 
         } //end if
 
     } //end checkCoordinates
 
-    public static int calinescuCost(LinkedList<FlowEdge> edges) {
+    public static double calinescuCost(LinkedList<FlowEdge> edges) {
 
         ListIterator<FlowEdge> it = edges.listIterator();
         LinkedList<FlowEdge> multiwayCut = new LinkedList<>();
 
-        int multiwayCutCost = 0;
+        double multiwayCutCost = 0.0;
 
         while (it.hasNext()) {
 
@@ -432,7 +429,7 @@ public class CalinescuUtility {
 
                 multiwayCut.add(edge.getOriginal());
                 multiwayCutCost += edge.getOriginal().getCapacity();
-                //StdOut.println("Edge: " + edge.edgeToString());
+                //StdOut.println("Edge: " + edge.getOriginal().edgeToString() + ", Capacity: " + edge.getCapacity() + ", Sum: " + multiwayCutCost);
 
             } //end if
 
