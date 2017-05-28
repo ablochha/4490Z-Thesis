@@ -28,6 +28,7 @@ public class GraphFormatReader {
     private static final String DIMACS3 = "DIMACS3";
     private static final String CONCENTRIC = "CONCENTRIC";
     private static final String GEOGRAPHIC = "GEOGRAPHIC";
+    private static final String KARLOFF = "KARLOFF";
     private static final String OTHER = "OTHER";
 
     private static double initialCapacity1;
@@ -77,6 +78,11 @@ public class GraphFormatReader {
 
                 format.close();
                 return parseGeographic(filename, outName);
+
+            case KARLOFF:
+
+                format.close();
+                return parseKarloff(filename, outName);
 
             case OTHER:
 
@@ -379,6 +385,86 @@ public class GraphFormatReader {
         return flowNetwork;
 
     } //end parseGeographic
+
+    private FlowNetwork parseKarloff(String filename, String outName) {
+
+        In in = new In(filename);
+        FlowNetwork flowNetwork = new FlowNetwork();
+        LinkedList<Integer> terminals = new LinkedList<>();
+
+        in.readLine();
+        flowNetwork.setK(in.readInt());
+        in.close();
+
+        // Add the terminals
+        for (int i = 1; i <= flowNetwork.getK(); i++) {
+
+            //Add as terminals
+            flowNetwork.addVertex(i);
+            terminals.add(i);
+
+        } //end for
+
+        flowNetwork.setTerminals(terminals);
+
+        for (int i = 1; i <= flowNetwork.getK(); i++) {
+
+            for (int j = 1; j <= flowNetwork.getK(); j++) {
+
+                if (i != j) {
+
+                    int first = Math.min(i, j);
+                    int second = Math.max(i, j);
+                    int node = Integer.parseInt(Integer.toString(first) + Integer.toString(second) + Integer.toString(0) + Integer.toString(0) + Integer.toString(0));
+
+                    flowNetwork.addVertex(node);
+                    flowNetwork.addEdge(i, node, 1);
+                    //StdOut.println("Added Edge: " + i + " to " + node);
+
+                } //end if
+
+            } //end for
+
+        } //end for
+
+        for (int i = 1; i <= flowNetwork.getK(); i++) {
+
+            for (int j = i + 1; j <= flowNetwork.getK(); j++) {
+
+                if (i != j) {
+
+                    int first = Math.min(i, j);
+                    int second = Math.max(i, j);
+                    int node1 = Integer.parseInt(Integer.toString(first) + Integer.toString(second) + Integer.toString(0) + Integer.toString(0) + Integer.toString(0));
+
+                    for (int third = 1; third <= flowNetwork.getK(); third++) {
+
+                        if (third != first && third != second) {
+
+                            int node2 = Integer.parseInt(Integer.toString(Math.min(first, third)) + Integer.toString(Math.max(first, third)) + Integer.toString(0) + Integer.toString(0) + Integer.toString(0));
+                            int node3 = Integer.parseInt(Integer.toString(Math.min(second, third)) + Integer.toString(Math.max(second, third)) + Integer.toString(0) + Integer.toString(0) + Integer.toString(0));
+
+                            flowNetwork.addEdge(node1, node2, 3.0 / (2.0 * flowNetwork.getK()));
+                            flowNetwork.addEdge(node1, node3, 3.0 / (2.0 * flowNetwork.getK()));
+
+                            //StdOut.println("Added Edge: " + node1 + " to " + node2);
+                            //StdOut.println("Added Edge: " + node1 + " to " + node3);
+
+                        } //end if
+
+                    } //end for
+
+                } //end if
+
+            } //end for
+
+        } //end for
+
+        outputGraph(flowNetwork, filename, outName);
+
+        return flowNetwork;
+
+    } //end parseKarloff
 
     /**
      * Reads the terminal vertices to be isolated.
