@@ -45,6 +45,7 @@ public class LocalSearchLabeller {
 
         for (Map.Entry<Integer, Integer> entry : labelling.entrySet()) {
 
+            //StdOut.println("Vertex: " + entry.getKey() + ", Before: " + vertices.get(entry.getKey()).getLocalSearchLabel() + ", After: " + entry.getValue());
             vertices.get(entry.getKey()).setLocalSearchLabel(entry.getValue());
 
         } //end for
@@ -79,9 +80,9 @@ public class LocalSearchLabeller {
 
     } //end initialLocalSearchLabel
 
-    public int localSearchLabelCost() {
+    public double localSearchLabelCost() {
 
-        int cost = 0;
+        double cost = 0;
 
         for (Map.Entry<Integer, FlowVertex> entry : vertices.entrySet()) {
 
@@ -89,6 +90,7 @@ public class LocalSearchLabeller {
 
                 if ((entry.getValue() == edge.getStartVertex()) && (edge.getStartVertex().getLocalSearchLabel() != edge.getEndVertex().getLocalSearchLabel())) {
 
+                    //StdOut.println(edge.edgeToString());
                     cost += edge.getCapacity();
 
                 } //end if
@@ -123,7 +125,7 @@ public class LocalSearchLabeller {
 
     } //end localSearchMinCut
 
-    public Map<Integer, Integer> getIsolationHeuristicLabelling(FlowNetwork ihFlowNetwork, LinkedList<FlowEdge> multiwayCut) {
+    public Map<Integer, Integer> getIsolationHeuristicLabelling(FlowNetwork ihFlowNetwork, LinkedList<FlowEdge> multiwayCut, int heavyIndex) {
 
         Map<Integer, FlowVertex> ihVertices = ihFlowNetwork.getVertices();
         BreadthFirstSearch bfs = new BreadthFirstSearch(ihVertices, ihFlowNetwork.getTerminals(), new MinCutReachability());
@@ -147,16 +149,13 @@ public class LocalSearchLabeller {
         } //end for
 
         // Assign island vertices to a neighbor
-        for (int i = 0; i < ihFlowNetwork.getNumVertices(); i++) {
+        for (Map.Entry<Integer, FlowVertex> entry : ihFlowNetwork.getVertices().entrySet()) {
 
-            if (!ihMarked.get(i).booleanValue() && ihVertices.get(i).getLabelledNeighbor() >= 0) {
+            if (!ihMarked.get(entry.getKey())) {
 
-                FlowVertex vertex = ihVertices.get(ihVertices.get(i).getLabelledNeighbor());
-
-                ihVertices.get(i).setLocalSearchLabel(vertex.getLocalSearchLabel());
-                ihLabelling.put(i, vertex.getLocalSearchLabel());
-
-                bfs.search(i, false);
+                //StdOut.println("Heavy Index: " + heavyIndex);
+                entry.getValue().setLocalSearchLabel(heavyIndex);
+                ihLabelling.put(entry.getKey(), heavyIndex);
 
             } //end if
 
@@ -175,21 +174,16 @@ public class LocalSearchLabeller {
 
         } //end for
 
-        for (int i = 0; i < flowNetwork.getNumVertices(); i++) {
+        for (Map.Entry<Integer, FlowVertex> entry : flowNetwork.getVertices().entrySet()) {
 
-            if (!terminals.contains(i)) {
+            if (!terminals.contains(entry.getKey())) {
 
-                vertices.get(i).setLocalSearchLabel(terminals.get(flowNetwork.getK() - 1));
-                initialLabelling.put(i, terminals.get(flowNetwork.getK() - 1));
+                entry.getValue().setLocalSearchLabel(flowNetwork.getK() - 1);
+                initialLabelling.put(entry.getKey(), flowNetwork.getK() - 1);
 
             } //end if
 
         } //end for
-
-        // TODO
-        // This prolly won't work
-        // Instead, start with the last terminal and BFS add everything
-        // Then 2nd last terminal BFS add everything
 
         return initialLabelling;
 

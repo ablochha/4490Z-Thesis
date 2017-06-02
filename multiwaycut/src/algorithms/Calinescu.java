@@ -17,7 +17,7 @@ public class Calinescu implements MultiwayCutStrategy {
 
     private long time;
 
-    private double radius;
+    private double threshold;
 
     public void setSolver(MultiwayCutStrategy solver) {
 
@@ -32,36 +32,30 @@ public class Calinescu implements MultiwayCutStrategy {
     } //end getTime
 
     @Override
-    public double getRadius() {
+    public double getThreshold() {
 
-        return radius;
+        return threshold;
 
-    } //end getRadius
+    } //end getThreshold
 
     /**
      * Computes a minimum multiway cut.
      */
     @Override
-    public int computeMultiwayCut(FlowNetwork flowNetwork) {
+    public double computeMultiwayCut(FlowNetwork flowNetwork) {
 
-        //Map<Integer, double[]> vertexLabels = new LinkedHashMap<>();
         Map<Integer, double[]> vertexLabels = solver.getVertexLabels();
-        double[] edgeLabelSums = new double[flowNetwork.getNumEdges()];
 
         StdOut.println("Calinescu");
-
-        //solver.computeMultiwayCut(flowNetwork, edgeLabelSums, vertexLabels);
-
         long start = System.nanoTime();
-        //outputCoordinates(flowNetwork, vertexLabels, edgeLabelSums);
+
         CalinescuUtility.subdivision(flowNetwork, vertexLabels);
         Pair cost = CalinescuUtility.roundCalinescu(flowNetwork, vertexLabels, CalinescuUtility.singleThreshold(CalinescuUtility.binomialPermutation(flowNetwork), StdRandom.uniform(0.0, 1.0)));
         time = System.nanoTime() - start;
-        radius = cost.value;
+        threshold = cost.value;
 
-        StdOut.println("The weight of the multiway cut: " + (int)cost.index);
-
-        return (int)cost.index;
+        StdOut.println("The weight of the multiway cut: " + String.format("%.3f", cost.index));
+        return cost.index;
 
     } //end computeMultiwayCut
 

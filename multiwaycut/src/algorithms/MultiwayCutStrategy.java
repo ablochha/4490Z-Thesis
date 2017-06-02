@@ -8,15 +8,21 @@ import java.util.Map;
  */
 public interface MultiwayCutStrategy {
 
-    default int computeMultiwayCut(FlowNetwork flowNetwork) {
+    default double computeMultiwayCut(FlowNetwork flowNetwork) {
 
-        return 0;
+        return 0.0;
 
     } //end computeMultiwayCut
 
     default void setEpsilon(double epsilon) {
 
     } //end setEpsilon
+
+    default double getEpsilon() {
+
+        return 0.0;
+
+    } //end getEpsilon
 
     default void setSolver(MultiwayCutStrategy solver) {
 
@@ -30,7 +36,7 @@ public interface MultiwayCutStrategy {
 
     } //end setIsolationHeuristic
 
-    default double getRadius() {
+    default double getThreshold() {
 
         return 0.0;
 
@@ -53,6 +59,12 @@ public interface MultiwayCutStrategy {
         return null;
 
     } //end getVertexLabels
+
+    default boolean isFractional() {
+
+        return false;
+
+    } //end isFractional
 
     long getTime();
 

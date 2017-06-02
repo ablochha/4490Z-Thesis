@@ -2,19 +2,12 @@ package algorithms;
 
 import datastructures.flownetwork.FlowNetwork;
 import library.StdOut;
-import library.StdRandom;
-import utility.MonteCarlo;
-import utility.Pair;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
- * Created by Bloch-Hansen on 2017-05-11.
+ * Created by Bloch-Hansen on 2017-05-31.
  */
-public class IndependentThreshold implements MultiwayCutStrategy{
+public class DescendingThreshold2 implements MultiwayCutStrategy {
 
     private MultiwayCutStrategy solver;
     private long time;
@@ -32,7 +25,7 @@ public class IndependentThreshold implements MultiwayCutStrategy{
     } //end getTime
 
     private double round(FlowNetwork flowNetwork,
-                      Map<Integer, double[]> vertexLabels) {
+                         Map<Integer, double[]> vertexLabels) {
 
         double b = 6.0 / 11.0;
 
@@ -40,7 +33,7 @@ public class IndependentThreshold implements MultiwayCutStrategy{
         long start = System.nanoTime();
 
         CalinescuUtility.subdivision(flowNetwork, vertexLabels);
-        cost = CalinescuUtility.roundCalinescu(flowNetwork, vertexLabels, CalinescuUtility.independentThreshold(CalinescuUtility.uniformPermutation(flowNetwork), b)).index;
+        cost = CalinescuUtility.roundCalinescu(flowNetwork, vertexLabels, CalinescuUtility.descendingThreshold(CalinescuUtility.uniformPermutation(flowNetwork), b)).index;
         time = System.nanoTime() - start;
 
         return cost;
@@ -52,7 +45,7 @@ public class IndependentThreshold implements MultiwayCutStrategy{
 
         Map<Integer, double[]> vertexLabels = solver.getVertexLabels();
 
-        StdOut.println("Sharma and Vondrak's independent threshold");
+        StdOut.println("Sharma and Vondrak's descending threshold 2");
         double cost = round(flowNetwork, vertexLabels);
         StdOut.println("The weight of the multiway cut: " + String.format("%.3f", cost));
 
@@ -60,4 +53,4 @@ public class IndependentThreshold implements MultiwayCutStrategy{
 
     } //end computeMultiwayCut
 
-} //end IndependentThreshold
+} //end DescendingThreshold2

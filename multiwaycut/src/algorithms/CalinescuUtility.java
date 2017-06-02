@@ -231,7 +231,6 @@ public class CalinescuUtility {
             // Loop through all of the vertices remaining in the kth list
             while (it.hasNext()) {
 
-                //int vertex = partition.get(i);
                 int vertex = it.next();
 
                 // The distance is within the sphere of radius rand
@@ -370,10 +369,10 @@ public class CalinescuUtility {
                                   FlowEdge edge,
                                   Map<Integer, double[]> vertexLabels) {
 
-        vertexLabels.put(flowNetwork.getNumVertices(), newPoint(flowNetwork, edge, vertexLabels));
+        vertexLabels.put(flowNetwork.getMaxVertexId() + 1, newPoint(flowNetwork, edge, vertexLabels));
 
-        FlowEdge uw = flowNetwork.addEdge(edge.getStartVertex().id(), flowNetwork.getNumVertices(), edge.getCapacity(), edge.getOriginal());
-        FlowEdge wv = flowNetwork.addEdge(flowNetwork.getNumVertices() - 1, edge.getEndVertex().id(), edge.getCapacity(), edge.getOriginal());
+        FlowEdge uw = flowNetwork.addEdge(edge.getStartVertex().id(), flowNetwork.getMaxVertexId() + 1, edge.getCapacity(), edge.getOriginal());
+        FlowEdge wv = flowNetwork.addEdge(flowNetwork.getMaxVertexId(), edge.getEndVertex().id(), edge.getCapacity(), edge.getOriginal());
 
         flowNetwork.removeEdge(edge.getStartVertex().id(), edge.getEndVertex().id());
         flowNetwork.removeEdge(edge.getEndVertex().id(), edge.getStartVertex().id());

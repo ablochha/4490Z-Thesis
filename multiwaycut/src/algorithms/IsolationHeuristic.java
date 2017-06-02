@@ -52,7 +52,7 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
      */
     private void computeMinimumCut(FlowNetwork flowNetwork,
                                    LinkedList<LinkedList<FlowEdge>> allMinCut,
-                                   LinkedList<Integer> cutWeights) {
+                                   LinkedList<Double> cutWeights) {
 
         LinkedList<Integer> t = flowNetwork.getTerminals();
 
@@ -62,7 +62,7 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
         // Compute a minimum cut to isolate each of the k terminal vertices
         for (int i = 0; i < k; i++) {
 
-            int sum = 0;
+            double sum = 0;
 
             // Remove the infinity edge for the current source vertex
             flowNetwork.removeEdge(t.get(i), n);
@@ -104,10 +104,10 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
      * @param cutWeights a list of weights for the minimum cuts
      * @return the index of the heaviest cut
      */
-    private int computeHeaviestCut(int k, LinkedList<Integer> cutWeights) {
+    private int computeHeaviestCut(int k, LinkedList<Double> cutWeights) {
 
         // The heaviest cut
-        int heavyCut = 0;
+        double heavyCut = 0;
         int heavyIndex = 0;
 
         // Compute the heaviest cut
@@ -167,9 +167,9 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
      * Computes a minimum cut from each terminal vertex to the sink.
      * @param multiwayCut a list of edges in the multiway cut
      */
-    private int outputMultiwayCut(LinkedList<FlowEdge> multiwayCut) {
+    private double outputMultiwayCut(LinkedList<FlowEdge> multiwayCut) {
 
-        int multiwayCutWeight = 0;
+        double multiwayCutWeight = 0;
 
         //StdOut.println("Multiway Cut: ");
 
@@ -180,7 +180,7 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
 
         } //end for
 
-        StdOut.println("The weight of the multiway cut: " + multiwayCutWeight);
+        StdOut.println("The weight of the multiway cut: " + String.format("%.3f", multiwayCutWeight));
         return multiwayCutWeight;
 
     } //end outputMultiwayCut
@@ -203,12 +203,12 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
      * Computes a minimum multiway cut.
      */
     @Override
-    public int computeMultiwayCut(FlowNetwork flowNetwork) {
+    public double computeMultiwayCut(FlowNetwork flowNetwork) {
 
         // The minimum cuts for each iteration
         LinkedList<LinkedList<FlowEdge>> allMinCut = new LinkedList<>();
         LinkedList<FlowEdge> multiwayCut = new LinkedList<>();
-        LinkedList<Integer> cutWeights = new LinkedList<>();
+        LinkedList<Double> cutWeights = new LinkedList<>();
 
         int heavyIndex;
 
@@ -220,11 +220,11 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
         computeMinimumCut(flowNetwork, allMinCut, cutWeights);
         heavyIndex = computeHeaviestCut(flowNetwork.getK(), cutWeights);
         unionCuts(flowNetwork.getK(), heavyIndex, allMinCut, multiwayCut);
-        int cost = outputMultiwayCut(multiwayCut);
+        double cost = outputMultiwayCut(multiwayCut);
         time = System.nanoTime() - start;
 
         flowNetwork.removeVertex(flowNetwork.getMaxVertexId());
-        labelling = new LocalSearchLabeller(new FlowNetwork(flowNetwork), null, null).getIsolationHeuristicLabelling(flowNetwork, multiwayCut);
+        labelling = new LocalSearchLabeller(new FlowNetwork(flowNetwork), null, null).getIsolationHeuristicLabelling(flowNetwork, multiwayCut, heavyIndex);
 
         return cost;
 
