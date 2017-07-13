@@ -29,7 +29,7 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
         int n = flowNetwork.getNumVertices();
         int m = flowNetwork.getNumEdges();
         int k = flowNetwork.getK();
-        int[] edgeCapacities = flowNetwork.getEdgeCapacities();
+        double[] edgeCapacities = flowNetwork.getEdgeCapacities();
 
         Map<Integer, IloNumVar[]> vertexLabels = new LinkedHashMap<>();
         IloNumVar[][] edgeLabels = new IloNumVar[m][k];
@@ -38,6 +38,7 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
         for (Map.Entry<Integer, FlowVertex> entry : flowNetwork.getVertices().entrySet()) {
 
             vertexLabels.put(entry.getValue().id(), model.boolVarArray(k));
+            //vertexLabels.put(entry.getValue().id(), model.numVarArray(k, 0.0, 1.0, IloNumVarType.Float));
 
         } //end for
 
@@ -45,6 +46,7 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
         for (int i = 0; i < m; i++) {
 
             edgeLabels[i] = model.boolVarArray(k);
+            //edgeLabels[i] = model.numVarArray(k, 0.0, 1.0, IloNumVarType.Float);
             edgeLabelSums[i] = model.numVar(0.0, 2.0, IloNumVarType.Int);
 
         } //end for
@@ -102,9 +104,9 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
      * Computes a minimum multiway cut.
      */
     @Override
-    public int computeMultiwayCut(FlowNetwork flowNetwork) {
+    public double computeMultiwayCut(FlowNetwork flowNetwork) {
 
-        int optimal = 0;
+        double optimal = 0;
 
         StdOut.println("Cplex");
 
@@ -132,8 +134,8 @@ public class MultiwayCutSolver implements MultiwayCutStrategy {
                 //System.out.println("Solution status = " + cplex.getStatus());
                 //System.out.println();
                 //System.out.println("Optimal = " + cplex.getObjValue());
-                optimal = (int)cplex.getObjValue();
-                StdOut.println("The weight of the multiway cut: " + optimal);
+                optimal = cplex.getObjValue();
+                StdOut.println("Cplex: The weight of the multiway cut: " + String.format("%.3f", optimal));
 
                 // Display which edges form the optimal multiway cut
                 for (int i = 0; i < flowNetwork.getNumEdges(); i++) {

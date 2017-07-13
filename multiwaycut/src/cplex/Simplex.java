@@ -6,6 +6,8 @@ import datastructures.flownetwork.FlowNetwork;
 import datastructures.flownetwork.FlowVertex;
 import ilog.concert.*;
 import ilog.cplex.IloCplex;
+import library.StdOut;
+import utility.ObjectCopy;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -31,7 +33,7 @@ public class Simplex implements MultiwayCutStrategy {
         int n = flowNetwork.getNumVertices();
         int m = flowNetwork.getNumEdges();
         int k = flowNetwork.getK();
-        int[] edgeCapacities = flowNetwork.getEdgeCapacities();
+        double[] edgeCapacities = flowNetwork.getEdgeCapacities();
         IloNumExpr[] distances = new IloNumExpr[m];
 
         // Initialize the linear labels for the vertices
@@ -87,9 +89,9 @@ public class Simplex implements MultiwayCutStrategy {
      * Computes a minimum multiway cut.
      */
     @Override
-    public int computeMultiwayCut(FlowNetwork flowNetwork) {
+    public double computeMultiwayCut(FlowNetwork flowNetwork) {
 
-        int optimal = 0;
+        double optimal = 0;
 
         //StdOut.println("Cplex");
 
@@ -119,8 +121,8 @@ public class Simplex implements MultiwayCutStrategy {
                 //System.out.println("Solution status = " + cplex.getStatus());
                 //System.out.println();
                 //System.out.println("Optimal = " + cplex.getObjValue());
-                optimal = (int)cplex.getObjValue();
-                //StdOut.println("The weight of the multiway cut: " + optimal);
+                optimal = cplex.getObjValue();
+                StdOut.println("Simplex: The weight of the multiway cut: " + String.format("%.3f", optimal));
 
                 // Display which edges form the optimal multiway cut
                 for (int i = 0; i < flowNetwork.getNumEdges(); i++) {
@@ -129,17 +131,17 @@ public class Simplex implements MultiwayCutStrategy {
 
                 } //end for
 
-                for (int i = 0; i < flowNetwork.getNumVertices(); i++) {
+                for (Map.Entry<Integer, FlowVertex> entry : flowNetwork.getVertices().entrySet()) {
 
                     double[] vertexVector = new double[flowNetwork.getK()];
 
                     for (int j = 0; j < flowNetwork.getK(); j++) {
 
-                        vertexVector[j] = cplex.getValue(vertexLabels.get(i)[j]);
+                        vertexVector[j] = cplex.getValue(vertexLabels.get(entry.getKey())[j]);
 
                     } //end for
 
-                    verticesRelaxed.put(i, vertexVector);
+                    verticesRelaxed.put(entry.getKey(), vertexVector);
 
                 } //end for
 
@@ -167,8 +169,30 @@ public class Simplex implements MultiwayCutStrategy {
     @Override
     public Map<Integer, double[]> getVertexLabels() {
 
+        //return ObjectCopy.copyMapIntDoubleArray(this.vertexLabels);
         return this.vertexLabels.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
     } //end getVertexLabels
+
+    @Override
+    public boolean isFractional() {
+
+        for (Map.Entry<Integer, double[]> entry : vertexLabels.entrySet()) {
+
+            for (int i = 0; i < entry.getValue().length; i++) {
+
+                if (entry.getValue()[i] % 1 != 0) {
+
+                    return true;
+
+                } //end if
+
+            } //end for
+
+        } //end for
+
+        return false;
+
+    } //end isFractional
 
 } //end Simplex
