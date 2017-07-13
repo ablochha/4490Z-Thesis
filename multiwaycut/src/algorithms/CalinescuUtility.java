@@ -205,7 +205,7 @@ public class CalinescuUtility {
         // Initialize the partition list
         for (int i = 0; i < flowNetwork.getK(); i++) {
 
-            partitions.put(i, new LinkedList<>());
+            partitions.put(i, new LinkedList<Integer>());
             partitions.get(i).add((int)terminalOrder.get(i).index);
             vertices.get((int)terminalOrder.get(i).index).setCalinescu(i);
 
@@ -274,8 +274,19 @@ public class CalinescuUtility {
             // Find the smallest exponential clock
             for (int i = 0; i < flowNetwork.getK(); i++) {
 
-                clock = clocks[i] / entry.getValue()[i];
-                //StdOut.println("Vertex " + entry.getKey() + ": Clock " + i + " (" + clocks[i] + ") divided by " + entry.getValue()[i] + " = " + clock);
+                if (entry.getValue()[i] == 0) {
+
+                    clock = Double.MAX_VALUE;
+                    //StdOut.println("Vertex " + entry.getKey() + ": Clock " + i + " (" + clocks[i] + ") NOT divided by 0 (set to infinity)");
+
+                } //end if
+
+                else {
+
+                    clock = clocks[i] / entry.getValue()[i];
+                    //StdOut.println("Vertex " + entry.getKey() + ": Clock " + i + " (" + clocks[i] + ") divided by " + entry.getValue()[i] + " = " + clock);
+
+                } //end else
 
                 // Check if this clock is the winner
                 if (clock < bestClock) {
@@ -311,11 +322,14 @@ public class CalinescuUtility {
         // Find two coordinates to change
         for (int i = 0; i < flowNetwork.getK(); i++) {
 
+            //StdOut.println("Edge: " + edge.edgeToString() + ", Coordinate: " + i);
+
             // xu < xv
             if (vertexLabels.get(edge.getStartVertex().id())[i] < vertexLabels.get(edge.getEndVertex().id())[i] && terminal1 < 0) {
 
                 terminal1 = i;
                 difference1 = vertexLabels.get(edge.getEndVertex().id())[i] - vertexLabels.get(edge.getStartVertex().id())[i];
+                //StdOut.println("End Vertex: " + vertexLabels.get(edge.getEndVertex().id())[i] + " Start Vertex: " + vertexLabels.get(edge.getStartVertex().id())[i] + " Difference1: " + difference1);
 
             } //end if
 
@@ -324,6 +338,7 @@ public class CalinescuUtility {
 
                 terminal2 = i;
                 difference2 = vertexLabels.get(edge.getStartVertex().id())[i] - vertexLabels.get(edge.getEndVertex().id())[i];
+                //StdOut.println("Start Vertex: " + vertexLabels.get(edge.getStartVertex().id())[i] + " End Vertex: " + vertexLabels.get(edge.getEndVertex().id())[i] + " Difference2: " + difference2);
 
             } //end if
 
@@ -391,9 +406,26 @@ public class CalinescuUtility {
         // Check the coordinates
         for (int i = 0; i < flowNetwork.getK(); i++) {
 
+            vertexLabels.get(edge.getStartVertex().id())[i] = Math.round(vertexLabels.get(edge.getStartVertex().id())[i] * 100) / 100;
+            vertexLabels.get(edge.getEndVertex().id())[i] = Math.round(vertexLabels.get(edge.getEndVertex().id())[i] * 100) / 100;
+
+            if (vertexLabels.get(edge.getStartVertex().id())[i] < 0.0) {
+
+                vertexLabels.get(edge.getStartVertex().id())[i] = 0.0;
+
+            } //end if
+
+            if (vertexLabels.get(edge.getEndVertex().id())[i] < 0.0) {
+
+                vertexLabels.get(edge.getEndVertex().id())[i] = 0.0;
+
+            } //end if
+
             // The ith coordinate differs
 
-            if (Math.floor(vertexLabels.get(edge.getStartVertex().id())[i] * 100) / 1000 != Math.floor(vertexLabels.get(edge.getEndVertex().id())[i] * 100) / 1000) {
+            //if (Math.floor(vertexLabels.get(edge.getStartVertex().id())[i] * 100) / 1000 != Math.floor(vertexLabels.get(edge.getEndVertex().id())[i] * 100) / 1000) {
+                //if (Math.round(vertexLabels.get(edge.getStartVertex().id())[i] * 100) / 100 != Math.round(vertexLabels.get(edge.getEndVertex().id())[i] * 100) / 100) {
+                    if (vertexLabels.get(edge.getStartVertex().id())[i] != vertexLabels.get(edge.getEndVertex().id())[i]) {
                 //if (!String.format("%.3f", vertexLabels.get(edge.getStartVertex().id())[i]).equals(String.format("%.3f", vertexLabels.get(edge.getEndVertex().id())[i]))) {
                 count++;
 
