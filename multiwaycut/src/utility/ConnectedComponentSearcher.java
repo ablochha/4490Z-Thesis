@@ -43,7 +43,7 @@ public class ConnectedComponentSearcher {
 
                 } //end if
 
-                //StdOut.println("Largest: " + largestComponent + ", Current: " + currentComponent);
+                //StdOut.println("Largest: " + largestComponent + ", Current: " +  bfs.getNodeCount());
 
             } //end if
 

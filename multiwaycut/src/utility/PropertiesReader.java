@@ -17,11 +17,22 @@ public class PropertiesReader {
     private InputStream input = null;
     private Properties prop = new Properties();
 
-    public String get(String name) {
+    public String get(String name, boolean windows) {
 
         try {
 
-            input = getClass().getClassLoader().getResourceAsStream("benchmarks.properties");
+            if (windows) {
+
+                input = getClass().getClassLoader().getResourceAsStream("benchmarks.properties");
+
+            } //end if
+
+            else {
+
+                input = getClass().getClassLoader().getResourceAsStream("benchmarksLinux.properties");
+
+            } //end else
+
             prop.load(input);
             return prop.getProperty(name);
 

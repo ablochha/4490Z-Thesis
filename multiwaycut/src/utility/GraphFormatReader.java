@@ -15,6 +15,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,9 +27,11 @@ public class GraphFormatReader {
     private static final String DIMACS1 = "DIMACS1";
     private static final String DIMACS2 = "DIMACS2";
     private static final String DIMACS3 = "DIMACS3";
+    private static final String DIMACS4 = "DIMACS4";
     private static final String CONCENTRIC = "CONCENTRIC";
     private static final String GEOGRAPHIC = "GEOGRAPHIC";
     private static final String KARLOFF = "KARLOFF";
+    private static final String SIMPLE = "SIMPLE";
     private static final String OTHER = "OTHER";
 
     private static double initialCapacity1;
@@ -69,6 +72,11 @@ public class GraphFormatReader {
                 format.close();
                 return parseDIMACS(filename, true, true, outName);
 
+            case DIMACS4:
+
+                format.close();
+                return parseDIMACS(filename, false, true, outName);
+
             case CONCENTRIC:
 
                 format.close();
@@ -83,6 +91,11 @@ public class GraphFormatReader {
 
                 format.close();
                 return parseKarloff(filename, outName);
+
+            case SIMPLE:
+
+                format.close();
+                return parseSimple(filename, outName);
 
             case OTHER:
 
@@ -148,7 +161,7 @@ public class GraphFormatReader {
 
         if (edgeWeights) {
 
-            e = Pattern.compile("e\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s*");
+            e = Pattern.compile("e\\s+(\\d+)\\s+(\\d+)\\s+(\\d+\\.?\\d*)\\s*");
 
         } //end if
 
@@ -174,7 +187,7 @@ public class GraphFormatReader {
 
                 if (edgeWeights) {
 
-                    flowNetwork.addEdge(u, v, Integer.parseInt(me.group(3)));
+                    flowNetwork.addEdge(u, v, Double.parseDouble(me.group(3)));
 
                 } //end if
 
@@ -182,14 +195,14 @@ public class GraphFormatReader {
 
                     if (flowNetwork.getTerminals().contains(u) | flowNetwork.getTerminals().contains(v)) {
 
-                        flowNetwork.addEdge(u, v, StdRandom.uniform(15, 20));
+                        flowNetwork.addEdge(u, v, StdRandom.uniform(3, 6));
                         //flowNetwork.addEdge(u, v, 1);
 
                     } //end if
 
                     else {
 
-                        flowNetwork.addEdge(u, v, StdRandom.uniform(1, 2));
+                        flowNetwork.addEdge(u, v, StdRandom.uniform(1, 3));
                         //flowNetwork.addEdge(u, v, 1);
 
                     } //end else
@@ -380,7 +393,7 @@ public class GraphFormatReader {
         searcher.connectComponents(flowNetwork);
         searcher.concentricEdgeCapacities(flowNetwork, initialCapacity1, initialCapacity2, decay, GEOGRAPHIC);
 
-        outputGraph(flowNetwork, filename, outName);
+        //outputGraph(flowNetwork, filename, outName);
 
         return flowNetwork;
 
@@ -466,6 +479,46 @@ public class GraphFormatReader {
 
     } //end parseKarloff
 
+    private FlowNetwork parseSimple(String filename, String outName) {
+
+        In in = new In(filename);
+        FlowNetwork flowNetwork = new FlowNetwork();
+        LinkedList<Integer> terminals = new LinkedList<>();
+
+        int vertices;
+        int edges;
+        int capacity;
+
+        in.readLine();
+        flowNetwork.setK(in.readInt());
+        vertices = in.readInt();
+        edges = in.readInt();
+        capacity = in.readInt();
+        in.close();
+
+        // Add the vertices
+        for (int i = 0; i < vertices; i++) {
+
+            flowNetwork.addVertex(i);
+
+        } //end for
+
+        while (flowNetwork.getNumEdges() < edges) {
+
+            int u = StdRandom.uniform(vertices);
+            int v = StdRandom.uniform(vertices);
+            flowNetwork.addEdge(u, v, StdRandom.uniform(1, capacity));
+
+        } //end while
+
+        FlowNetwork connected = new ConnectedComponentSearcher().getLargestConnectedComponent(flowNetwork);
+        connected.setTerminals(generateTerminals(connected.getK(), connected.getVertices()));
+        outputGraph(connected, filename, outName);
+
+        return connected;
+
+    } //end parseSimple
+
     /**
      * Reads the terminal vertices to be isolated.
      * @param in a text representation of the flow network
@@ -506,6 +559,29 @@ public class GraphFormatReader {
             } //end while
 
             terminals.add(terminal);
+
+        } //end for
+
+        return terminals;
+
+    } //end generateTerminals
+
+    private LinkedList<Integer> generateTerminals(int k, Map<Integer, FlowVertex> vertices) {
+
+        LinkedList<Integer> terminals = new LinkedList<>();
+        LinkedList<Integer> keysAsArray = new LinkedList<>(vertices.keySet());
+
+        for (int i = 0; i < k; i++) {
+
+            int terminal = StdRandom.uniform(0, keysAsArray.size());
+
+            while (terminals.contains(keysAsArray.get(terminal))) {
+
+                terminal = StdRandom.uniform(0, keysAsArray.size());
+
+            } //end while
+
+            terminals.add(keysAsArray.get(terminal));
 
         } //end for
 
