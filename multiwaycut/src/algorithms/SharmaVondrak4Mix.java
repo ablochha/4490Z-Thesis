@@ -81,7 +81,7 @@ public class SharmaVondrak4Mix implements MultiwayCutStrategy {
 
         StdOut.println("Sharma and Vondrak's 4 ingredient mixture");
         double cost = round(flowNetwork, vertexLabels);
-        StdOut.println("The weight of the multiway cut: " + String.format("%.3f", cost));
+        StdOut.println("4 Mix: The weight of the multiway cut: " + String.format("%.3f", cost));
 
         return cost;
 

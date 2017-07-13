@@ -47,7 +47,7 @@ public class DescendingThreshold1 implements MultiwayCutStrategy{
 
         StdOut.println("Sharma and Vondrak's descending threshold 1");
         double cost = round(flowNetwork, vertexLabels);
-        StdOut.println("The weight of the multiway cut: " + String.format("%.3f", cost));
+        StdOut.println("Descending 1: The weight of the multiway cut: " + String.format("%.3f", cost));
 
         return cost;
 

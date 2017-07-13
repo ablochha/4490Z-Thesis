@@ -180,12 +180,11 @@ public class IsolationHeuristic implements MultiwayCutStrategy {
 
         } //end for
 
-        StdOut.println("The weight of the multiway cut: " + String.format("%.3f", multiwayCutWeight));
+        StdOut.println("Isolation: The weight of the multiway cut: " + String.format("%.3f", multiwayCutWeight));
         return multiwayCutWeight;
 
     } //end outputMultiwayCut
 
-    @Override
     public long getTime() {
 
         return time;

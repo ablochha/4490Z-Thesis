@@ -38,7 +38,7 @@ public class ExponentialClocks implements MultiwayCutStrategy {
         double cost = CalinescuUtility.roundBuchbinder(flowNetwork, vertexLabels);
         time = System.nanoTime() - start;
 
-        StdOut.println("The weight of the multiway cut: " + String.format("%.3f", cost));
+        StdOut.println("Clocks: The weight of the multiway cut: " + String.format("%.3f", cost));
         return cost;
 
     } //end computeMultiwayCut

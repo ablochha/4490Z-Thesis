@@ -67,7 +67,7 @@ public class SingleThreshold2 implements MultiwayCutStrategy {
 
         StdOut.println("Sharma and Vondrak's single threshold 2");
         double cost = round(flowNetwork, vertexLabels);
-        StdOut.println("The weight of the multiway cut: " + String.format("%.3f", cost));
+        StdOut.println("Single 2: The weight of the multiway cut: " + String.format("%.3f", cost));
 
         return cost;
 

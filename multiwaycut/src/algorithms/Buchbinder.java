@@ -6,6 +6,7 @@ import datastructures.flownetwork.FlowVertex;
 import library.Matrix;
 import library.StdOut;
 import library.StdRandom;
+import utility.ObjectCopy;
 import utility.Pair;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -284,6 +285,7 @@ public class Buchbinder implements MultiwayCutStrategy {
                       Map<Integer, double[]> vertexLabels) {
 
         FlowNetwork flowNetwork2 = new FlowNetwork(flowNetwork);
+        //Map<Integer, double[]> vertexLabels2 = ObjectCopy.copyMapIntDoubleArray(vertexLabels);
         Map<Integer, double[]> vertexLabels2 = vertexLabels.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
         int alg = StdRandom.uniform(1, 230);
@@ -328,7 +330,7 @@ public class Buchbinder implements MultiwayCutStrategy {
 
         StdOut.println("Buchbinder");
         double cost = round(flowNetwork, vertexLabels);
-        StdOut.println("The weight of the multiway cut: " + String.format("%.3f", cost));
+        StdOut.println("Buchbinder: The weight of the multiway cut: " + String.format("%.3f", cost));
 
         return cost;
 

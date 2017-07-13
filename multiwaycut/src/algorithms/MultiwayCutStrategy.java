@@ -68,4 +68,26 @@ public interface MultiwayCutStrategy {
 
     long getTime();
 
+    /*double computeMultiwayCut(FlowNetwork flowNetwork);
+
+    void setEpsilon(double epsilon);
+
+    double getEpsilon();
+
+    void setSolver(MultiwayCutStrategy solver);
+
+    void setInitialLabeller(String initialLabeller);
+
+    void setIsolationHeuristic(MultiwayCutStrategy ih);
+
+    double getThreshold();
+
+    double getCalCost();
+
+    Map<Integer, Integer> getIsolationHeuristicLabelling();
+
+    Map<Integer, double[]> getVertexLabels();
+
+    boolean isFractional();*/
+
 } //end MultiwayCutStrategy

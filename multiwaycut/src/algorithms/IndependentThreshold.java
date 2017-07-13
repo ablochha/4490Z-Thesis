@@ -54,7 +54,7 @@ public class IndependentThreshold implements MultiwayCutStrategy{
 
         StdOut.println("Sharma and Vondrak's independent threshold");
         double cost = round(flowNetwork, vertexLabels);
-        StdOut.println("The weight of the multiway cut: " + String.format("%.3f", cost));
+        StdOut.println("Independent: The weight of the multiway cut: " + String.format("%.3f", cost));
 
         return cost;
 

@@ -54,7 +54,7 @@ public class Calinescu implements MultiwayCutStrategy {
         time = System.nanoTime() - start;
         threshold = cost.value;
 
-        StdOut.println("The weight of the multiway cut: " + String.format("%.3f", cost.index));
+        StdOut.println("Calinescu: The weight of the multiway cut: " + String.format("%.3f", cost.index));
         return cost.index;
 
     } //end computeMultiwayCut
