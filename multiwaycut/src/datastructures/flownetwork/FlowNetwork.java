@@ -324,7 +324,7 @@ public class FlowNetwork {
 
     } //end setLocalSearchLabel
 
-    public void addEdge(int vertexId1, int vertexId2, int capacity) {
+    public void addEdge(int vertexId1, int vertexId2, double capacity) {
 
         if (vertexId1 >= 0 && vertexId2 >= 0 && capacity >= 0) {
 
@@ -362,7 +362,7 @@ public class FlowNetwork {
 
     } //end addEdge
 
-    public FlowEdge addEdge(int vertexId1, int vertexId2, int capacity, FlowEdge edge) {
+    public FlowEdge addEdge(int vertexId1, int vertexId2, double capacity, FlowEdge edge) {
 
         if (vertexId1 >= 0 && vertexId2 >= 0 && capacity >= 0) {
 
@@ -491,10 +491,10 @@ public class FlowNetwork {
 
     } //end getEdges
 
-    public int[] getEdgeCapacities() {
+    public double[] getEdgeCapacities() {
 
         LinkedList<FlowEdge> edges = getEdges();
-        int[] edgeCapacities = new int[edges.size()];
+        double[] edgeCapacities = new double[edges.size()];
         int i = 0;
 
         ListIterator<FlowEdge> it = edges.listIterator();

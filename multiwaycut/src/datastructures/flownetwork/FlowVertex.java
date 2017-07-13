@@ -12,7 +12,7 @@ import java.util.ListIterator;
 public class FlowVertex {
 
     private int id;
-    private int excess;
+    private double excess;
     private int label;
     private int localSearchLabel;
     private int iteratorAugPath;
@@ -40,9 +40,9 @@ public class FlowVertex {
 
     } //end Vertex
 
-    public boolean addEdge(FlowVertex endVertex, int capacity) {
+    public boolean addEdge(FlowVertex endVertex, double capacity) {
 
-        if (!containsEdge(endVertex)) {
+        if (!containsEdge(endVertex) && !containsResEdge(endVertex)) {
 
             FlowEdge edge = new FlowEdge(this, endVertex, capacity);
             adjacencyList.add(edge);
@@ -59,9 +59,9 @@ public class FlowVertex {
 
     } //end addEdge
 
-    public FlowEdge addEdge(FlowVertex endVertex, int capacity, FlowEdge original) {
+    public FlowEdge addEdge(FlowVertex endVertex, double capacity, FlowEdge original) {
 
-        if (!containsEdge(endVertex)) {
+        if (!containsEdge(endVertex) && !containsResEdge(endVertex)) {
 
             FlowEdge edge = new FlowEdge(this, endVertex, capacity);
             adjacencyList.add(edge);
@@ -505,13 +505,13 @@ public class FlowVertex {
 
     } //end setExcess
 
-    public int getExcess() {
+    public double getExcess() {
 
         return this.excess;
 
     } //end getExcess
 
-    public void changeExcess(int deltaExcess) {
+    public void changeExcess(double deltaExcess) {
 
         this.excess += deltaExcess;
         this.increasedLabel = false;

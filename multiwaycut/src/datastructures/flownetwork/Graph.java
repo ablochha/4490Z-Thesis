@@ -76,7 +76,7 @@ public class Graph {
 
     } //end setLocalSearchLabel
 
-    public boolean addEdge(int vertexId1, int vertexId2, int capacity) {
+    public boolean addEdge(int vertexId1, int vertexId2, double capacity) {
 
         this.addVertex(vertexId1);
         this.addVertex(vertexId2);
@@ -91,7 +91,7 @@ public class Graph {
 
     } //end addEdge
 
-    public FlowEdge addEdge(int vertexId1, int vertexId2, int capacity, FlowEdge edge) {
+    public FlowEdge addEdge(int vertexId1, int vertexId2, double capacity, FlowEdge edge) {
 
         this.addVertex(vertexId1);
         this.addVertex(vertexId2);
@@ -297,7 +297,7 @@ public class Graph {
 
     } //end getInFlow
 
-    public int getExcess(int vertexId) {
+    public double getExcess(int vertexId) {
 
         return vertices.get(vertexId).getExcess();
 

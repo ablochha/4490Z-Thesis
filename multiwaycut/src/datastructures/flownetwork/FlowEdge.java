@@ -19,15 +19,15 @@ public class FlowEdge {
 	private FlowVertex startVertex;
 	private FlowVertex endVertex;
 	private FlowEdge original;
-	private int capacity;
-	private int flow;
+	private double capacity;
+	private double flow;
 	private int from;
 	
 	/**
 	 * Declares a new FlowEdge with 0 flow
 
 	 */
-	public FlowEdge(FlowVertex startVertex, FlowVertex endVertex, int capacity) {
+	public FlowEdge(FlowVertex startVertex, FlowVertex endVertex, double capacity) {
 		
 		// Make sure positive integers are used to identify vertices
 		if (startVertex.id() < 0) {
@@ -44,7 +44,7 @@ public class FlowEdge {
 		} //end if
 		
 		// Make sure the edge capacity is positive
-		if (!(capacity >= 0)) {
+		if (!(capacity >= 0.0)) {
 			
 			throw new IllegalArgumentException("Choose positive number for edge capacity");
 			
@@ -54,12 +54,12 @@ public class FlowEdge {
 		this.startVertex = startVertex;
 		this.endVertex = endVertex;
 		this.capacity = capacity;
-		this.flow = 0;
+		this.flow = 0.0;
 		this.from = -10;
 		
 	} //end FlowEdge
 
-	public FlowEdge(FlowVertex startVertex, FlowVertex endVertex, int capacity, FlowEdge original) {
+	public FlowEdge(FlowVertex startVertex, FlowVertex endVertex, double capacity, FlowEdge original) {
 
 		this(startVertex, endVertex, capacity);
 		this.original = original;
@@ -102,13 +102,13 @@ public class FlowEdge {
 	 * Returns the capacity of an edge
 	 * @return the capacity
 	 */
-	public int getCapacity() {
+	public double getCapacity() {
 		
 		return capacity;
 		
 	} //end capacity
 
-	public void setCapacity(int capacity) {
+	public void setCapacity(double capacity) {
 
 		this.capacity = capacity;
 
@@ -118,15 +118,15 @@ public class FlowEdge {
 	 * Returns the flow of an edge
 	 * @return the flow
 	 */
-	public int getFlow() {
+	public double getFlow() {
 		
 		return flow;
 		
 	} //end flow
 
-	public boolean setFlow(int flow) {
+	public boolean setFlow(double flow) {
 
-		if (flow > this.capacity || flow < 0) {
+		if (flow > this.capacity || flow < 0.0) {
 
 			return false;
 
@@ -155,8 +155,8 @@ public class FlowEdge {
 
 	public FlowVertex pushFlowForward() {
 
-		int previousExcess = endVertex.getExcess();
-		int deltaFlow = 0;
+		double previousExcess = endVertex.getExcess();
+		double deltaFlow = 0;
 
 		// The start vertex is the source
 		if (this.getStartVertex().getExcess() == -1) {
@@ -217,8 +217,8 @@ public class FlowEdge {
 
 	public FlowVertex pushResFlowForward() {
 
-		int previousExcess = startVertex.getExcess();
-		int deltaFlow = 0;
+		double previousExcess = startVertex.getExcess();
+		double deltaFlow = 0;
 
 		// The start vertex is the source
 		if (this.getEndVertex().getExcess() == -1) {
@@ -278,8 +278,8 @@ public class FlowEdge {
 
 	public FlowVertex pushFlowBackward() {
 
-		int previousExcess = startVertex.getExcess();
-		int deltaFlow = 0;
+		double previousExcess = startVertex.getExcess();
+		double deltaFlow = 0;
 
 		// Saturating push
 		if (flow <= endVertex.getExcess()) {
@@ -332,8 +332,8 @@ public class FlowEdge {
 
 	public FlowVertex pushResFlowBackward() {
 
-		int previousExcess = endVertex.getExcess();
-		int deltaFlow = 0;
+		double previousExcess = endVertex.getExcess();
+		double deltaFlow = 0;
 
 		// Saturating push
 		if (flow <= startVertex.getExcess()) {
@@ -386,7 +386,7 @@ public class FlowEdge {
 
 	public String edgeToString() {
 
-		return "(" + startVertex.id() + "," + endVertex.id() + ",c:" + capacity + ",f:" + flow + ",from: " + from + ")";
+		return "(" + startVertex.id() + "," + endVertex.id() + ",c:" + capacity + ",f:" + flow + ",from: " + from + ",lslabel1:" + startVertex.getLocalSearchLabel() + ",lslabel2:" + endVertex.getLocalSearchLabel() + ")";
 
 	} //end edgeToString
 	
